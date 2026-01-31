@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "563501365788",
+    "project_id": "event-scheduler-project",
+    "storage_bucket": "event-scheduler-project.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:563501365788:android:a54c96b682a265d96c7dd9",
+        "android_client_info": {
+          "package_name": "com.example.event_scheduler"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBM0QeC25PWZwYzgqq_zQDieZeEoNpNVVE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
