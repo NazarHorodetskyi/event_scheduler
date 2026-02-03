@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class RegisterScreen extends StatefulWidget {
-  RegisterScreen({super.key});
+  const RegisterScreen({super.key});
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -12,6 +12,7 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  String errorMessage = "";
 
   void register() async {
     try {
@@ -20,7 +21,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         password: passwordController.text,
       );
     } on FirebaseAuthException catch (e) {
-      print(e.message);
+      setState(() {
+        errorMessage = e.message ?? "";
+      });
     }
   }
 
@@ -34,6 +37,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(title: Text("Registration"), backgroundColor: Colors.blue),
       body: Center(
         child: Column(
           children: [
@@ -44,6 +48,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 hintStyle: TextStyle(backgroundColor: Colors.grey[350]),
               ),
             ),
+            SizedBox(height: 15),
             TextField(
               controller: passwordController,
               decoration: InputDecoration(
@@ -55,7 +60,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               onPressed: () {
                 register();
               },
+              child: Text("Register"),
             ),
+            Text(errorMessage),
           ],
         ),
       ),
