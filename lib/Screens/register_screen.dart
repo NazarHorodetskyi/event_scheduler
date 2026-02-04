@@ -2,6 +2,7 @@ import 'package:event_scheduler/Screens/main_screen.dart';
 import 'package:event_scheduler/Screens/sign_in_screen.dart';
 import 'package:event_scheduler/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -16,19 +17,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController passwordController = TextEditingController();
   String errorMessage = "";
 
-  void _navigateToLogin(String email) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SignInScreen(initialEmail: email),
-      ),
-    );
-  }
-
   void register() async {
     setState(() {
       errorMessage = "";
     });
+
+    if (emailController.text.trim().isEmpty ||
+        passwordController.text.trim().isEmpty) {
+      setState(() {
+        errorMessage = "All fields must be filled";
+      });
+      return;
+    }
+
     try {
       await authService.value.createUser(
         email: emailController.text.trim(),
@@ -45,23 +46,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       String errorText = "";
       switch (e.code) {
         case "email-already-in-use":
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text("Email already used"),
-                backgroundColor: Colors.orange[800],
-                duration: const Duration(seconds: 5),
-                action: SnackBarAction(
-                  label: 'Sign in',
-                  textColor: Colors.white,
-                  onPressed: () {
-                    _navigateToLogin(emailController.text.trim());
-                  },
-                ),
-              ),
-            );
-          }
-          errorText = "";
+          errorText = "Email already in use";
           break;
         case "invalid-email":
           errorText = "Invalid email format";
@@ -113,6 +98,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 hintStyle: TextStyle(backgroundColor: Colors.grey[350]),
               ),
             ),
+            SizedBox(height: 15),
             FloatingActionButton(
               onPressed: () {
                 register();
@@ -120,6 +106,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
               child: Text("Register"),
             ),
             SizedBox(height: 15),
+            RichText(
+              text: TextSpan(
+                text: "ALready registered? ",
+                style: TextStyle(color: Colors.black),
+                children: [
+                  TextSpan(
+                    text: "Sign in",
+                    style: TextStyle(color: Colors.blue[400]),
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SignInScreen(),
+                          ),
+                        );
+                      },
+                  ),
+                ],
+              ),
+            ),
             Text(errorMessage),
           ],
         ),

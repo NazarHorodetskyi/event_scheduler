@@ -21,6 +21,15 @@ class _SignInScreenState extends State<SignInScreen> {
     setState(() {
       errorMessage = "";
     });
+
+    if (emailController.text.trim().isEmpty ||
+        passwordController.text.trim().isEmpty) {
+      setState(() {
+        errorMessage = "All fields must be filled";
+      });
+      return;
+    }
+
     try {
       await authService.value.signIn(
         email: emailController.text.trim(),
@@ -112,12 +121,14 @@ class _SignInScreenState extends State<SignInScreen> {
               },
               child: Text("Sign up"),
             ),
+            SizedBox(height: 15),
             RichText(
               text: TextSpan(
-                text: "Don't have an account?",
+                text: "Don't have an account? ",
+                style: TextStyle(color: Colors.black),
                 children: [
                   TextSpan(
-                    text: "register here",
+                    text: "Register here",
                     style: TextStyle(color: Colors.blue[400]),
                     recognizer: TapGestureRecognizer()
                       ..onTap = () {
