@@ -16,22 +16,54 @@ class _SignInScreenState extends State<SignInScreen> {
   late TextEditingController emailController;
   final TextEditingController passwordController = TextEditingController();
   String errorMessage = "";
-  String result = "";
 
   void signIn() async {
+    setState(() {
+      errorMessage = "";
+    });
     try {
       await authService.value.signIn(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
-      setState(() {
-        result = "success";
-      });
+
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => MainScreen()),
+        );
+      }
     } on FirebaseAuthException catch (e) {
-      setState(() {
-        errorMessage = e.message ?? "";
-        result = "failure";
-      });
+      String errorText;
+      switch (e.code) {
+        case "user-not-found":
+        case "invalid-credential":
+          errorText = "User not found or passport is incorect";
+          break;
+        case "invalid-email":
+          errorText = "Invalid email format";
+          break;
+        case "user-disabled":
+          errorText = "This user has been disabled";
+          break;
+        case "wrong-password":
+          errorText = "Wrong password";
+          break;
+        case "too-many-requests":
+          errorText = "Too many requests, try again later";
+          break;
+        case "network-request-failed":
+          errorText = "No internet connection";
+          break;
+        default:
+          errorText = "Error: ${e.message}";
+      }
+
+      if (mounted) {
+        setState(() {
+          errorMessage = errorText;
+        });
+      }
     }
   }
 
@@ -77,10 +109,6 @@ class _SignInScreenState extends State<SignInScreen> {
             FloatingActionButton(
               onPressed: () {
                 signIn();
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => MainScreen()),
-                );
               },
               child: Text("Sign up"),
             ),
@@ -106,7 +134,6 @@ class _SignInScreenState extends State<SignInScreen> {
             ),
             SizedBox(height: 15),
             Text(errorMessage),
-            Text(result),
           ],
         ),
       ),

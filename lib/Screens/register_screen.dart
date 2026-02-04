@@ -45,23 +45,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
       String errorText = "";
       switch (e.code) {
         case "email-already-in-use":
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text("Email already used"),
-              backgroundColor: Colors.orange[800],
-              duration: const Duration(seconds: 5),
-              action: SnackBarAction(
-                label: 'Sign in',
-                textColor: Colors.white,
-                onPressed: () {
-                  _navigateToLogin(emailController.text.trim());
-                },
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text("Email already used"),
+                backgroundColor: Colors.orange[800],
+                duration: const Duration(seconds: 5),
+                action: SnackBarAction(
+                  label: 'Sign in',
+                  textColor: Colors.white,
+                  onPressed: () {
+                    _navigateToLogin(emailController.text.trim());
+                  },
+                ),
               ),
-            ),
-          );
+            );
+          }
           errorText = "";
           break;
-          ;
         case "invalid-email":
           errorText = "Invalid email format";
           break;
