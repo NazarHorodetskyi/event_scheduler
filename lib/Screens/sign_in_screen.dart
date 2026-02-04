@@ -1,16 +1,19 @@
+import 'package:event_scheduler/Screens/main_screen.dart';
+import 'package:event_scheduler/Screens/register_screen.dart';
 import 'package:event_scheduler/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 class SignInScreen extends StatefulWidget {
-  const SignInScreen({super.key});
-
+  const SignInScreen({super.key, this.initialEmail});
+  final String? initialEmail;
   @override
   State<SignInScreen> createState() => _SignInScreenState();
 }
 
 class _SignInScreenState extends State<SignInScreen> {
-  final TextEditingController emailController = TextEditingController();
+  late TextEditingController emailController;
   final TextEditingController passwordController = TextEditingController();
   String errorMessage = "";
   String result = "";
@@ -18,8 +21,8 @@ class _SignInScreenState extends State<SignInScreen> {
   void signIn() async {
     try {
       await authService.value.signIn(
-        email: emailController.text,
-        password: passwordController.text,
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
       );
       setState(() {
         result = "success";
@@ -30,6 +33,12 @@ class _SignInScreenState extends State<SignInScreen> {
         result = "failure";
       });
     }
+  }
+
+  @override
+  void initState() {
+    emailController = TextEditingController(text: widget.initialEmail ?? "");
+    super.initState();
   }
 
   @override
@@ -68,10 +77,33 @@ class _SignInScreenState extends State<SignInScreen> {
             FloatingActionButton(
               onPressed: () {
                 signIn();
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => MainScreen()),
+                );
               },
               child: Text("Sign up"),
             ),
-            Text("Not registered yet? Click here"),
+            RichText(
+              text: TextSpan(
+                text: "Don't have an account?",
+                children: [
+                  TextSpan(
+                    text: "register here",
+                    style: TextStyle(color: Colors.blue[400]),
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const RegisterScreen(),
+                          ),
+                        );
+                      },
+                  ),
+                ],
+              ),
+            ),
             SizedBox(height: 15),
             Text(errorMessage),
             Text(result),
