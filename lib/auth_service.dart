@@ -1,33 +1,59 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:event_scheduler/exceptions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import "package:event_scheduler/database_user_model.dart";
 
 ValueNotifier<AuthService> authService = ValueNotifier(AuthService());
 
 class AuthService {
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   User? get currentUser => firebaseAuth.currentUser;
 
   Stream<User?> get authStateChanges => firebaseAuth.authStateChanges();
 
-  Future<UserCredential> signIn({
+  Future<DatabaseUser> signIn({
     required String email,
     required String password,
   }) async {
-    return await firebaseAuth.signInWithEmailAndPassword(
+    final userCredential = await firebaseAuth.signInWithEmailAndPassword(
       email: email,
       password: password,
     );
+
+    final uid = userCredential.user!.uid;
+    final docSnapshot = await _db.collection("users").doc(uid).get();
+
+    if (docSnapshot.exists) {
+      final data = docSnapshot.data();
+
+      return DatabaseUser.fromMap(data!, uid);
+    } else {
+      throw CouldNotFindUserInDatabase();
+    }
   }
 
-  Future<UserCredential> createUser({
+  Future<DatabaseUser> createUser({
     required String email,
     required String password,
   }) async {
-    return await firebaseAuth.createUserWithEmailAndPassword(
+    final userCredential = await firebaseAuth.createUserWithEmailAndPassword(
       email: email,
       password: password,
     );
+
+    DatabaseUser newUser = DatabaseUser(
+      uid: userCredential.user!.uid,
+      email: email,
+      nickname: "User",
+      groupIds: [],
+    );
+
+    await _db.collection("users").doc(newUser.uid).set(newUser.toMap());
+
+    return newUser;
   }
 
   Future<void> signOut() async {
