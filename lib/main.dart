@@ -9,7 +9,6 @@ import 'package:event_scheduler/Screens/sign_in_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  final db = FirebaseFirestore.instance;
   runApp(const EventScheduler());
 }
 

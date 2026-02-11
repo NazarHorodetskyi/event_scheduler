@@ -1,6 +1,6 @@
-import 'package:event_scheduler/Screens/main_screen.dart';
-import 'package:event_scheduler/Screens/register_screen.dart';
-import 'package:event_scheduler/auth_service.dart';
+import 'package:event_scheduler/screens/main_screen.dart';
+import 'package:event_scheduler/screens/register_screen.dart';
+import 'package:event_scheduler/services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +17,7 @@ class _SignInScreenState extends State<SignInScreen> {
   final TextEditingController passwordController = TextEditingController();
   String errorMessage = "";
 
-  void signIn() async {
+  void signInButtonClick() async {
     setState(() {
       errorMessage = "";
     });
@@ -117,7 +117,7 @@ class _SignInScreenState extends State<SignInScreen> {
             SizedBox(height: 15),
             FloatingActionButton(
               onPressed: () {
-                signIn();
+                signInButtonClick();
               },
               child: Text("Sign up"),
             ),

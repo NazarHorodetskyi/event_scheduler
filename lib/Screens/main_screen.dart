@@ -1,5 +1,5 @@
-import 'package:event_scheduler/Screens/sign_in_screen.dart';
-import 'package:event_scheduler/auth_service.dart';
+import 'package:event_scheduler/screens/sign_in_screen.dart';
+import 'package:event_scheduler/services/auth_service.dart';
 import 'package:flutter/material.dart';
 
 class MainScreen extends StatefulWidget {
