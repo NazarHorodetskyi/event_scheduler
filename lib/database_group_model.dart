@@ -24,7 +24,7 @@ class DatabaseGroup {
       name: map["name"] ?? '',
       ownerId: map["ownerId"] ?? "",
       groupId: map["groupId"] ?? "",
-      members: map["members"] ?? [],
+      members: List<String>.from(map["members"] ?? []),
       recentMessage: map["recentMessage"] ?? "",
       recentMessageTime: map['recentMessageTime'] != null
           ? (map['recentMessageTime'] as Timestamp).toDate()
