@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:event_scheduler/database_group_model.dart';
+import 'package:event_scheduler/models/database_group_model.dart';
 import 'package:event_scheduler/screens/sign_in_screen.dart';
 import 'package:event_scheduler/services/auth_service.dart';
 import 'package:event_scheduler/services/group_service.dart';
