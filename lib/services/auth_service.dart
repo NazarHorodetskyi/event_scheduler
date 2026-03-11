@@ -68,18 +68,73 @@ class AuthService {
     return await currentUser!.updateDisplayName(username);
   }
 
-  Future<void> deleteUser({
-    required String email,
-    required String password,
-  }) async {
-    AuthCredential credential = EmailAuthProvider.credential(
-      email: email,
-      password: password,
-    );
-    await currentUser!.reauthenticateWithCredential(credential);
-    await currentUser!.delete();
-    await firebaseAuth.signOut();
-    return;
+  Future<void> deleteUser({required String password}) async {
+    try {
+      final user = currentUser;
+      if (user == null) return;
+
+      AuthCredential credentials = EmailAuthProvider.credential(
+        email: user.email!,
+        password: password,
+      );
+
+      await user.reauthenticateWithCredential(credentials);
+
+      final String userId = user.uid;
+
+      DocumentSnapshot userDoc = await _db
+          .collection("users")
+          .doc(userId)
+          .get();
+
+      if (userDoc.exists) {
+        final userData = userDoc.data() as Map<String, dynamic>?;
+        List<String> userGroups = List<String>.from(userData?["groups"] ?? []);
+
+        WriteBatch batch = _db.batch();
+
+        for (String groupId in userGroups) {
+          DocumentReference groupRef = _db.collection('groups').doc(groupId);
+          DocumentSnapshot groupSnapshot = await groupRef.get();
+
+          if (groupSnapshot.exists) {
+            final groupData = groupSnapshot.data() as Map<String, dynamic>?;
+            List<String> members = List<String>.from(
+              groupData?["members"] ?? [],
+            );
+            String ownerId = groupData?['ownerId'] ?? '';
+
+            if (members.length == 1 && members.contains(userId)) {
+              batch.delete(groupRef);
+            } else {
+              batch.update(groupRef, {
+                'members': FieldValue.arrayRemove([userId]),
+              });
+
+              if (ownerId == userId) {
+                String newOwner = members.firstWhere(
+                  (id) => id != userId,
+                  orElse: () => '',
+                );
+                if (newOwner.isNotEmpty) {
+                  batch.update(groupRef, {'ownerId': newOwner});
+                }
+              }
+            }
+          }
+        }
+
+        DocumentReference userRef = _db.collection('users').doc(userId);
+        batch.delete(userRef);
+        await batch.commit();
+        print("--- ✅ Дані користувача повністю вичищено з бази ---");
+      }
+
+      await user.delete();
+      print("--- 🗑️ Акаунт успішно видалено назавжди ---");
+    } catch (e) {
+      print("--- ❌ Помилка видалення акаунту: $e ---");
+    }
   }
 
   Future<void> updatePassword({
