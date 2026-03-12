@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:event_scheduler/exceptions.dart';
 import 'package:event_scheduler/models/database_group_model.dart';
 import 'package:event_scheduler/screens/sign_in_screen.dart';
 import 'package:event_scheduler/services/auth_service.dart';
@@ -23,42 +23,6 @@ class _MainScreenState extends State<MainScreen> {
     super.initState();
   }
 
-  Future<void> _createGroupLogic(String groupName) async {
-    print("--- 1. Кнопку натиснуто! Назва: $groupName ---");
-
-    try {
-      final currentAuthUser = FirebaseAuth.instance.currentUser;
-
-      if (currentAuthUser == null) {
-        print("--- ❌ СТОП: Firebase каже, що юзер НЕ авторизований! ---");
-        return; // Ось тут воно може тихо виходити
-      }
-
-      print("--- 2. Юзер авторизований. ID: ${currentAuthUser.uid} ---");
-      final String userId = currentAuthUser.uid;
-
-      print("--- 3. Шукаємо нікнейм у базі... ---");
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .get();
-      final String nickname = userDoc.data()?['nickname'] ?? 'Без імені';
-      print("--- 4. Нікнейм знайдено: $nickname ---");
-
-      print("--- 5. Передаємо дані в GroupService... ---");
-      final groupService = GroupService();
-      await groupService.createGroup(userId, nickname, groupName);
-
-      print("--- ✅ 6. ФІНІШ! Групу записано в базу! ---");
-
-      setState(() {
-        groups = groupService.getAllGroups(userId);
-      });
-    } catch (e) {
-      print("--- ❌ ПОМИЛКА: $e ---");
-    }
-  }
-
   void _showCreateGroupDialog(BuildContext context) {
     final TextEditingController nameController = TextEditingController();
 
@@ -80,15 +44,44 @@ class _MainScreenState extends State<MainScreen> {
               onPressed: () async {
                 final groupName = nameController.text.trim();
                 if (groupName.isEmpty) return;
-                await _createGroupLogic(groupName);
-                if (context.mounted) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Групу "$groupName" створено!'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
+
+                try {
+                  final currentAuthUser = FirebaseAuth.instance.currentUser;
+                  if (currentAuthUser == null) {
+                    throw UserNotAuthenticatedException();
+                  }
+
+                  final String userId = currentAuthUser.uid;
+
+                  await groupService.createGroup(userId, groupName);
+
+                  if (context.mounted) {
+                    Navigator.pop(context);
+
+                    setState(() {
+                      groups = groupService.getAllGroups(userId);
+                    });
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Групу "$groupName" успішно створено!'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    Navigator.pop(context);
+
+                    final errorMessage = e.toString();
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(errorMessage),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
                 }
               },
               child: const Text('Створити'),
@@ -219,9 +212,10 @@ class _MainScreenState extends State<MainScreen> {
                 } catch (e) {
                   if (context.mounted) {
                     Navigator.of(dialogContext).pop();
+                    String errorMessage = e.toString();
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text("Some error occured!"),
+                        content: Text(errorMessage),
                         backgroundColor: Colors.red,
                       ),
                     );
