@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:event_scheduler/database_group_model.dart';
+import 'package:event_scheduler/models/database_group_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import "package:event_scheduler/firebase_constants.dart";
 
 class GroupService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -8,8 +9,8 @@ class GroupService {
   Future<List<DatabaseGroup>> getAllGroups(String userId) async {
     try {
       final snapshot = await _db
-          .collection('groups')
-          .where('members', arrayContains: userId)
+          .collection(FirebaseConstants.groupsCollection)
+          .where(FirebaseConstants.groupMembers, arrayContains: userId)
           .get();
 
       List<DatabaseGroup> groups = snapshot.docs.map((doc) {
@@ -28,7 +29,9 @@ class GroupService {
     String userName,
     String groupName,
   ) async {
-    DocumentReference groupDocRef = _db.collection("groups").doc();
+    DocumentReference groupDocRef = _db
+        .collection(FirebaseConstants.groupsCollection)
+        .doc();
     DatabaseGroup newGroup = DatabaseGroup(
       name: groupName,
       ownerId: ownerId,
@@ -42,9 +45,11 @@ class GroupService {
     WriteBatch batch = _db.batch();
     batch.set(groupDocRef, newGroup.toMap());
 
-    DocumentReference userDocRef = _db.collection('users').doc(ownerId);
+    DocumentReference userDocRef = _db
+        .collection(FirebaseConstants.usersCollection)
+        .doc(ownerId);
     batch.set(userDocRef, {
-      'groupIds': FieldValue.arrayUnion([groupDocRef.id]),
+      FirebaseConstants.userGroups: FieldValue.arrayUnion([groupDocRef.id]),
     }, SetOptions(merge: true));
     await batch.commit();
   }
@@ -55,28 +60,34 @@ class GroupService {
       if (user == null) return;
       final String userId = user.uid;
 
-      DocumentReference groupRef = _db.collection("groups").doc(groupId);
+      DocumentReference groupRef = _db
+          .collection(FirebaseConstants.groupsCollection)
+          .doc(groupId);
       DocumentSnapshot groupSnapshot = await groupRef.get();
 
       if (!groupSnapshot.exists) return;
 
       final groupData = groupSnapshot.data() as Map<String, dynamic>?;
-      List<String> members = List<String>.from(groupData?["members"] ?? []);
+      List<String> members = List<String>.from(
+        groupData?[FirebaseConstants.groupMembers] ?? [],
+      );
 
-      String ownerId = groupData?["ownerId"] ?? "";
+      String ownerId = groupData?[FirebaseConstants.ownerId] ?? "";
 
       WriteBatch batch = _db.batch();
 
-      DocumentReference userRef = _db.collection("users").doc(userId);
+      DocumentReference userRef = _db
+          .collection(FirebaseConstants.usersCollection)
+          .doc(userId);
       batch.update(userRef, {
-        "groupIds": FieldValue.arrayRemove([groupId]),
+        FirebaseConstants.userGroups: FieldValue.arrayRemove([groupId]),
       });
 
       if (members.length == 1 && members.contains(userId)) {
         batch.delete(groupRef);
       } else {
         batch.update(groupRef, {
-          "members": FieldValue.arrayRemove([userId]),
+          FirebaseConstants.groupMembers: FieldValue.arrayRemove([userId]),
         });
 
         if (userId == ownerId) {
@@ -86,7 +97,7 @@ class GroupService {
           );
 
           if (newOwner.isNotEmpty) {
-            batch.update(groupRef, {"ownerId": newOwner});
+            batch.update(groupRef, {FirebaseConstants.ownerId: newOwner});
           }
         }
       }

@@ -153,6 +153,15 @@ class _MainScreenState extends State<MainScreen> {
                           margin: EdgeInsets.all(8.0),
                           child: ListTile(
                             title: Text(groupsToView[index].name),
+                            trailing: IconButton(
+                              icon: Icon(Icons.exit_to_app, color: Colors.red),
+                              onPressed: () {
+                                _showDeleteDialog(
+                                  context: context,
+                                  groupId: groupsToView[index].groupId,
+                                );
+                              },
+                            ),
                           ),
                         );
                       },
@@ -166,6 +175,65 @@ class _MainScreenState extends State<MainScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showDeleteDialog({
+    required BuildContext context,
+    required String groupId,
+  }) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text("You want to leave this group?"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+              child: Text("Cancel"),
+            ),
+
+            ElevatedButton(
+              onPressed: () async {
+                try {
+                  final currentAuthUser =
+                      FirebaseAuth.instance.currentUser!.uid;
+                  await groupService.leaveGroup(groupId);
+
+                  if (context.mounted) Navigator.pop(dialogContext);
+
+                  setState(() {
+                    groups = groupService.getAllGroups(currentAuthUser);
+                  });
+
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Success'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    Navigator.of(dialogContext).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Some error occured!"),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text("Yes, leave"),
+            ),
+          ],
+        );
+      },
     );
   }
 }
