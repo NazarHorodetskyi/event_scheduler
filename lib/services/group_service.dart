@@ -5,7 +5,10 @@ import "package:event_scheduler/firebase_constants.dart";
 import 'package:event_scheduler/exceptions.dart';
 
 class GroupService {
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  GroupService({FirebaseFirestore? db})
+    : _db = db ?? FirebaseFirestore.instance;
+
+  final FirebaseFirestore _db;
 
   Future<List<DatabaseGroup>> getAllGroups(String userId) async {
     try {

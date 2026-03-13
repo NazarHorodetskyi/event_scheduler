@@ -8,18 +8,21 @@ import 'package:flutter/material.dart';
 ValueNotifier<AuthService> authService = ValueNotifier(AuthService());
 
 class AuthService {
-  final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  AuthService({FirebaseAuth? firebaseAuth, FirebaseFirestore? db})
+    : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
+      _db = db ?? FirebaseFirestore.instance;
+  final FirebaseAuth _firebaseAuth;
+  final FirebaseFirestore _db;
 
-  User? get currentUser => firebaseAuth.currentUser;
+  User? get currentUser => _firebaseAuth.currentUser;
 
-  Stream<User?> get authStateChanges => firebaseAuth.authStateChanges();
+  Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
 
   Future<DatabaseUser> signIn({
     required String email,
     required String password,
   }) async {
-    final userCredential = await firebaseAuth.signInWithEmailAndPassword(
+    final userCredential = await _firebaseAuth.signInWithEmailAndPassword(
       email: email,
       password: password,
     );
@@ -43,7 +46,7 @@ class AuthService {
     required String email,
     required String password,
   }) async {
-    final userCredential = await firebaseAuth.createUserWithEmailAndPassword(
+    final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
       email: email,
       password: password,
     );
@@ -65,11 +68,11 @@ class AuthService {
   }
 
   Future<void> signOut() async {
-    return await firebaseAuth.signOut();
+    return await _firebaseAuth.signOut();
   }
 
   Future<void> resetPassword({required String email}) async {
-    return await firebaseAuth.sendPasswordResetEmail(email: email);
+    return await _firebaseAuth.sendPasswordResetEmail(email: email);
   }
 
   Future<void> updateUsername({required String username}) async {
