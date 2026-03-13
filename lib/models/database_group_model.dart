@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:event_scheduler/firebase_constants.dart';
 
 class DatabaseGroup {
   final String name;
@@ -21,27 +22,27 @@ class DatabaseGroup {
 
   factory DatabaseGroup.fromMap(Map<String, dynamic> map, String id) {
     return DatabaseGroup(
-      name: map["name"] ?? '',
-      ownerId: map["ownerId"] ?? "",
-      groupId: map["groupId"] ?? "",
-      members: List<String>.from(map["members"] ?? []),
-      recentMessage: map["recentMessage"] ?? "",
-      recentMessageTime: map['recentMessageTime'] != null
-          ? (map['recentMessageTime'] as Timestamp).toDate()
+      name: map[FirebaseConstants.groupName] ?? '',
+      ownerId: map[FirebaseConstants.groupOwnerId] ?? "",
+      groupId: map[FirebaseConstants.groupId] ?? "",
+      members: List<String>.from(map[FirebaseConstants.groupMembers] ?? []),
+      recentMessage: map[FirebaseConstants.recentMessage] ?? "",
+      recentMessageTime: map[FirebaseConstants.recentMessageTime] != null
+          ? (map[FirebaseConstants.recentMessageTime] as Timestamp).toDate()
           : null,
-      description: map["description"],
+      description: map[FirebaseConstants.groupDescription],
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      "name": name,
-      "ownerId": ownerId,
-      "groupId": groupId,
-      "members": members,
-      "recentMessage": recentMessage,
-      "recentMessageTime": recentMessageTime,
-      "description": description,
+      FirebaseConstants.groupName: name,
+      FirebaseConstants.groupOwnerId: ownerId,
+      FirebaseConstants.groupId: groupId,
+      FirebaseConstants.groupMembers: members,
+      FirebaseConstants.recentMessage: recentMessage,
+      FirebaseConstants.recentMessageTime: recentMessageTime,
+      FirebaseConstants.groupDescription: description,
     };
   }
 }

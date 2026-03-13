@@ -25,11 +25,7 @@ class GroupService {
     }
   }
 
-  Future<void> createGroup(
-    String ownerId,
-    String userName,
-    String groupName,
-  ) async {
+  Future<void> createGroup(String ownerId, String groupName) async {
     DocumentReference groupDocRef = _db
         .collection(FirebaseConstants.groupsCollection)
         .doc();
@@ -78,7 +74,7 @@ class GroupService {
       groupData?[FirebaseConstants.groupMembers] ?? [],
     );
 
-    String ownerId = groupData?[FirebaseConstants.ownerId] ?? "";
+    String ownerId = groupData?[FirebaseConstants.groupOwnerId] ?? "";
 
     WriteBatch batch = _db.batch();
 
@@ -103,7 +99,7 @@ class GroupService {
         );
 
         if (newOwner.isNotEmpty) {
-          batch.update(groupRef, {FirebaseConstants.ownerId: newOwner});
+          batch.update(groupRef, {FirebaseConstants.groupOwnerId: newOwner});
         }
       }
     }
