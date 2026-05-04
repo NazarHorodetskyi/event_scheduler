@@ -1,4 +1,4 @@
-import 'package:event_scheduler/firebase_constants.dart';
+import 'package:event_scheduler/other/firebase_constants.dart';
 
 class DatabaseUser {
   final String uid;

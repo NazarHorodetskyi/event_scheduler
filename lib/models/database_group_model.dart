@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:event_scheduler/firebase_constants.dart';
+import 'package:event_scheduler/other/firebase_constants.dart';
 
 class DatabaseGroup {
   final String name;

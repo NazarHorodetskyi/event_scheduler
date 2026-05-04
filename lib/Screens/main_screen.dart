@@ -1,5 +1,6 @@
 import 'package:event_scheduler/models/database_group_model.dart';
 import 'package:event_scheduler/other/exceptions.dart';
+import 'package:event_scheduler/screens/group_details_screen.dart';
 import 'package:event_scheduler/screens/sign_in_screen.dart';
 import 'package:event_scheduler/services/auth_service.dart';
 import 'package:event_scheduler/services/group_service.dart';
@@ -115,7 +116,7 @@ class _MainScreenState extends State<MainScreen> {
                 Text("Succesfuly logged in"),
                 FloatingActionButton(
                   onPressed: () async {
-                    await authService.value.signOut();
+                    await signOutButtonClick();
                   },
                   child: Text("Вийти"),
                 ),
@@ -145,6 +146,15 @@ class _MainScreenState extends State<MainScreen> {
                         return Card(
                           margin: EdgeInsets.all(8.0),
                           child: ListTile(
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => GroupDetailsScreen(
+                                    group: groupsToView[index],
+                                  ),
+                                ),
+                              );
+                            },
                             title: Text(groupsToView[index].name),
                             trailing: IconButton(
                               icon: Icon(Icons.exit_to_app, color: Colors.red),

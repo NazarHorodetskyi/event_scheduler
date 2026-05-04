@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:event_scheduler/exceptions.dart';
-import 'package:event_scheduler/firebase_constants.dart';
+import 'package:event_scheduler/other/exceptions.dart';
+import 'package:event_scheduler/other/firebase_constants.dart';
 import 'package:event_scheduler/models/database_event_model.dart';
 
 class EventService {
