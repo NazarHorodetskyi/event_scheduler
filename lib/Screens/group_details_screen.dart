@@ -1,4 +1,5 @@
 import 'package:event_scheduler/models/database_group_model.dart';
+import 'package:event_scheduler/screens/event_wizard_screen.dart';
 import 'package:flutter/material.dart';
 
 class GroupDetailsScreen extends StatefulWidget {
@@ -15,14 +16,15 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Ти у групі ${widget.group.name}")),
-      body: Column(
-        children: [
-          FloatingActionButton(
-            onPressed: () {
-              // EVENT CREATION MODAL
-            },
-          ),
-        ],
+      body: Center(
+        child: FloatingActionButton(
+          child: Text("Create an event"),
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => EventWizardScreen()),
+            );
+          },
+        ),
       ),
     );
   }
