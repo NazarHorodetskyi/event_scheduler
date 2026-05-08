@@ -15,8 +15,6 @@ class AuthService {
 
   User? get currentUser => _firebaseAuth.currentUser;
 
-  Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
-
   Future<DatabaseUser> signIn({
     required String email,
     required String password,

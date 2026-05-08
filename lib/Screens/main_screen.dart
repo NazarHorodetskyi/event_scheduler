@@ -6,16 +6,16 @@ import 'package:event_scheduler/services/auth_service.dart';
 import 'package:event_scheduler/services/group_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class MainScreen extends StatefulWidget {
+class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({super.key});
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  ConsumerState<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
-  GroupService groupService = GroupService();
+class _MainScreenState extends ConsumerState<MainScreen> {
   late Future<List<DatabaseGroup>> groups;
 
   @override

@@ -7,7 +7,7 @@ import 'package:event_scheduler/screens/sign_in_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const ProviderScope(child: const EventScheduler()));
+  runApp(const ProviderScope(child: EventScheduler()));
 }
 
 class EventScheduler extends StatelessWidget {

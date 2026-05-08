@@ -1,4 +1,4 @@
-import 'package:event_scheduler/providers/firebase.providers.dart';
+import 'package:event_scheduler/providers/firebase_providers.dart';
 import 'package:event_scheduler/services/group_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
