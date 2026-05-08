@@ -3,14 +3,13 @@ import 'package:event_scheduler/other/exceptions.dart';
 import 'package:event_scheduler/other/firebase_constants.dart';
 import 'package:event_scheduler/models/database_user_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
-
-ValueNotifier<AuthService> authService = ValueNotifier(AuthService());
 
 class AuthService {
-  AuthService({FirebaseAuth? firebaseAuth, FirebaseFirestore? db})
-    : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
-      _db = db ?? FirebaseFirestore.instance;
+  AuthService({
+    required FirebaseAuth firebaseAuth,
+    required FirebaseFirestore db,
+  }) : _firebaseAuth = firebaseAuth,
+       _db = db;
   final FirebaseAuth _firebaseAuth;
   final FirebaseFirestore _db;
 

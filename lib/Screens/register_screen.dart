@@ -1,18 +1,19 @@
+import 'package:event_scheduler/providers/auth_service_provider.dart';
 import 'package:event_scheduler/screens/main_screen.dart';
 import 'package:event_scheduler/screens/sign_in_screen.dart';
-import 'package:event_scheduler/services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class RegisterScreen extends StatefulWidget {
+class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   String errorMessage = "";
@@ -31,10 +32,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
 
     try {
-      await authService.value.createUser(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
-      );
+      await ref
+          .read(authServiceProvider)
+          .createUser(
+            email: emailController.text.trim(),
+            password: passwordController.text.trim(),
+          );
 
       if (mounted) {
         Navigator.pushReplacement(

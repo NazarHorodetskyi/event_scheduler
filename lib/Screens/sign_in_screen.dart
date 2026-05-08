@@ -1,18 +1,20 @@
+import 'package:event_scheduler/providers/auth_service_provider.dart';
 import 'package:event_scheduler/screens/main_screen.dart';
 import 'package:event_scheduler/screens/register_screen.dart';
 import 'package:event_scheduler/services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class SignInScreen extends StatefulWidget {
+class SignInScreen extends ConsumerStatefulWidget {
   const SignInScreen({super.key, this.initialEmail});
   final String? initialEmail;
   @override
-  State<SignInScreen> createState() => _SignInScreenState();
+  ConsumerState<SignInScreen> createState() => _SignInScreenState();
 }
 
-class _SignInScreenState extends State<SignInScreen> {
+class _SignInScreenState extends ConsumerState<SignInScreen> {
   late TextEditingController emailController;
   final TextEditingController passwordController = TextEditingController();
   String errorMessage = "";
@@ -31,10 +33,12 @@ class _SignInScreenState extends State<SignInScreen> {
     }
 
     try {
-      await authService.value.signIn(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
-      );
+      await ref
+          .read(authServiceProvider)
+          .signIn(
+            email: emailController.text.trim(),
+            password: passwordController.text.trim(),
+          );
 
       if (mounted) {
         Navigator.pushReplacement(

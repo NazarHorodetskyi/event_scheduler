@@ -5,8 +5,7 @@ import "package:event_scheduler/other/firebase_constants.dart";
 import 'package:event_scheduler/other/exceptions.dart';
 
 class GroupService {
-  GroupService({FirebaseFirestore? db})
-    : _db = db ?? FirebaseFirestore.instance;
+  GroupService({required FirebaseFirestore db}) : _db = db;
 
   final FirebaseFirestore _db;
 

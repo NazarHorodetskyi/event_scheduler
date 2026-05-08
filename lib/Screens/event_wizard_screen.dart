@@ -32,6 +32,16 @@ class EventWizardNotifier extends Notifier<EventWizard> {
   void updateTime(DateTime newTime) {
     state = state.copyWith(time: newTime);
   }
+
+  void updateDescription(String newDescription) {
+    state = state.copyWith(description: newDescription);
+  }
+
+  Future<void> submitEvent() async {
+    print(
+      'Відправляємо в базу: ${state.title}, ${state.description}, ${state.time}',
+    );
+  }
 }
 
 // Actual provider which provides a notifier
@@ -40,17 +50,16 @@ final eventWizardNotifierProvider =
       () => EventWizardNotifier(),
     );
 
-class EventWizardScreen extends StatefulWidget {
+class EventWizardScreen extends ConsumerStatefulWidget {
   const EventWizardScreen({super.key});
 
   @override
-  State<EventWizardScreen> createState() => _EventWizardScreenState();
+  ConsumerState<EventWizardScreen> createState() => _EventWizardScreenState();
 }
 
-class _EventWizardScreenState extends State<EventWizardScreen> {
+class _EventWizardScreenState extends ConsumerState<EventWizardScreen> {
   final PageController _pageController = PageController();
 
-  // ТЕПЕР СТАРТУЄМО З 1
   int _currentPage = 1;
   final int _totalPages = 3;
 
@@ -94,9 +103,7 @@ class _EventWizardScreenState extends State<EventWizardScreen> {
       pickedTime.minute,
     );
 
-    setState(() {
-      _selectedDateTime = combinedDateTime;
-    });
+    ref.read(eventWizardNotifierProvider.notifier).updateTime(combinedDateTime);
   }
 
   void _nextPage() {
@@ -105,8 +112,16 @@ class _EventWizardScreenState extends State<EventWizardScreen> {
         _showError('Назва має містити більше 3 символів');
         return;
       }
+      ref
+          .read(eventWizardNotifierProvider.notifier)
+          .updateTitle(_titleController.text);
     }
-    if (_currentPage == 2) {}
+
+    if (_currentPage == 2) {
+      ref
+          .read(eventWizardNotifierProvider.notifier)
+          .updateDescription(_descController.text);
+    }
 
     if (_currentPage < _totalPages) {
       _pageController.nextPage(
@@ -116,19 +131,24 @@ class _EventWizardScreenState extends State<EventWizardScreen> {
     }
   }
 
-  void _submitEvent() {
-    if (_selectedDateTime == null) {
+  void _submitEvent() async {
+    final wizardState = ref.read(eventWizardNotifierProvider);
+
+    if (wizardState.time == null) {
       _showError('Будь ласка, оберіть дату та час події');
       return;
     }
 
-    if (_selectedDateTime!.isBefore(DateTime.now())) {
+    if (wizardState.time!.isBefore(DateTime.now())) {
       _showError('Час події вже минув. Оберіть майбутній час!');
       return;
     }
 
-    print("УСПІХ! Назва: ${_titleController.text}, Дата: $_selectedDateTime");
-    Navigator.pop(context);
+    await ref.read(eventWizardNotifierProvider.notifier).submitEvent();
+
+    if (mounted) {
+      Navigator.pop(context);
+    }
   }
 
   void _previousPage() {
@@ -148,6 +168,8 @@ class _EventWizardScreenState extends State<EventWizardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final wizardState = ref.watch(eventWizardNotifierProvider);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Створення події')),
       body: PageView(
@@ -188,7 +210,7 @@ class _EventWizardScreenState extends State<EventWizardScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    _selectedDateTime == null
+                    wizardState.time == null
                         ? 'Час ще не обрано'
                         : 'Обрано: ${_selectedDateTime.toString().substring(0, 16)}',
                     style: const TextStyle(fontSize: 18),

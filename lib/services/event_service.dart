@@ -4,8 +4,7 @@ import 'package:event_scheduler/other/firebase_constants.dart';
 import 'package:event_scheduler/models/database_event_model.dart';
 
 class EventService {
-  EventService({FirebaseFirestore? db})
-    : _db = db ?? FirebaseFirestore.instance;
+  EventService({required FirebaseFirestore db}) : _db = db;
   final FirebaseFirestore _db;
 
   Future<void> createEvent(
