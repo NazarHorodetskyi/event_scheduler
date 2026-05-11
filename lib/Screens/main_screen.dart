@@ -1,10 +1,9 @@
-import 'package:event_scheduler/models/database_group_model.dart';
 import 'package:event_scheduler/other/exceptions.dart';
+import 'package:event_scheduler/providers/auth_service_provider.dart';
+import 'package:event_scheduler/providers/firebase_providers.dart';
+import 'package:event_scheduler/providers/group_service_provider.dart';
 import 'package:event_scheduler/screens/group_details_screen.dart';
 import 'package:event_scheduler/screens/sign_in_screen.dart';
-import 'package:event_scheduler/services/auth_service.dart';
-import 'package:event_scheduler/services/group_service.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -16,30 +15,102 @@ class MainScreen extends ConsumerStatefulWidget {
 }
 
 class _MainScreenState extends ConsumerState<MainScreen> {
-  late Future<List<DatabaseGroup>> groups;
-
   @override
-  void initState() {
-    groups = groupService.getAllGroups(FirebaseAuth.instance.currentUser!.uid);
-    super.initState();
+  Widget build(BuildContext context) {
+    final groups = ref.watch(userGroupsProvider);
+
+    return Scaffold(
+      appBar: AppBar(title: Text("Something here")),
+      body: Center(
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Text("Succesfuly logged in"),
+                FloatingActionButton(
+                  onPressed: () async {
+                    await ref.read(authServiceProvider).signOut();
+                    if (context.mounted) {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SignInScreen(),
+                        ),
+                      );
+                    }
+                  },
+                  child: Text("Вийти"),
+                ),
+              ],
+            ),
+            FloatingActionButton(
+              onPressed: () {
+                _showCreateGroupDialog(context);
+              },
+              child: Icon(Icons.add_box_rounded),
+            ),
+            Expanded(
+              child: groups.when(
+                data: (groupsToView) {
+                  if (groupsToView.isEmpty) {
+                    return const Center(child: Text("You have no groups"));
+                  }
+                  return ListView.builder(
+                    itemCount: groupsToView.length,
+                    itemBuilder: (context, index) {
+                      return Card(
+                        margin: EdgeInsets.all(8.0),
+                        child: ListTile(
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => GroupDetailsScreen(
+                                  group: groupsToView[index],
+                                ),
+                              ),
+                            );
+                          },
+                          title: Text(groupsToView[index].name),
+                          trailing: IconButton(
+                            icon: Icon(Icons.exit_to_app, color: Colors.red),
+                            onPressed: () {
+                              _showDeleteDialog(
+                                context: context,
+                                groupId: groupsToView[index].groupId,
+                              );
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stack) => Center(child: Text('Error: $error')),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
+  // Additional functions
   void _showCreateGroupDialog(BuildContext context) {
     final TextEditingController nameController = TextEditingController();
-
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Нова група'),
+          title: const Text('New group'),
           content: TextField(
             controller: nameController,
-            decoration: const InputDecoration(hintText: 'Назва (напр. Футбол)'),
+            decoration: const InputDecoration(hintText: 'Group name'),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Скасувати'),
+              child: const Text('Cancel'),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -47,25 +118,24 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                 if (groupName.isEmpty) return;
 
                 try {
-                  final currentAuthUser = FirebaseAuth.instance.currentUser;
+                  final groupService = ref.read(groupServiceProvider);
+                  final authService = ref.read(firebaseAuthProvider);
+
+                  final currentAuthUser = authService.currentUser;
                   if (currentAuthUser == null) {
                     throw UserNotAuthenticatedException();
                   }
 
-                  final String userId = currentAuthUser.uid;
-
-                  await groupService.createGroup(userId, groupName);
-
+                  await groupService.createGroup(
+                    currentAuthUser.uid,
+                    groupName,
+                  );
                   if (context.mounted) {
                     Navigator.pop(context);
-
-                    setState(() {
-                      groups = groupService.getAllGroups(userId);
-                    });
-
+                    ref.invalidate(userGroupsProvider);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Групу "$groupName" успішно створено!'),
+                        content: Text('Group "$groupName" created!'),
                         backgroundColor: Colors.green,
                       ),
                     );
@@ -85,99 +155,11 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                   }
                 }
               },
-              child: const Text('Створити'),
+              child: const Text('Create'),
             ),
           ],
         );
       },
-    );
-  }
-
-  Future<void> signOutButtonClick() async {
-    await authService.value.signOut();
-
-    if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => SignInScreen()),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text("Something here")),
-      body: Center(
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Text("Succesfuly logged in"),
-                FloatingActionButton(
-                  onPressed: () async {
-                    await signOutButtonClick();
-                  },
-                  child: Text("Вийти"),
-                ),
-              ],
-            ),
-            FloatingActionButton(
-              onPressed: () {
-                _showCreateGroupDialog(context);
-              },
-              child: Icon(Icons.add_box_rounded),
-            ),
-            Expanded(
-              child: FutureBuilder(
-                future: groups,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done &&
-                      snapshot.hasData) {
-                    List<DatabaseGroup> groupsToView = snapshot.data!;
-                    if (groupsToView.isEmpty) {
-                      return Center(
-                        child: Text("У вас ще немає створених грууп"),
-                      );
-                    }
-                    return ListView.builder(
-                      itemCount: groupsToView.length,
-                      itemBuilder: (context, index) {
-                        return Card(
-                          margin: EdgeInsets.all(8.0),
-                          child: ListTile(
-                            onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => GroupDetailsScreen(
-                                    group: groupsToView[index],
-                                  ),
-                                ),
-                              );
-                            },
-                            title: Text(groupsToView[index].name),
-                            trailing: IconButton(
-                              icon: Icon(Icons.exit_to_app, color: Colors.red),
-                              onPressed: () {
-                                _showDeleteDialog(
-                                  context: context,
-                                  groupId: groupsToView[index].groupId,
-                                );
-                              },
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  } else {
-                    return CircularProgressIndicator();
-                  }
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -201,15 +183,12 @@ class _MainScreenState extends ConsumerState<MainScreen> {
             ElevatedButton(
               onPressed: () async {
                 try {
-                  final currentAuthUser =
-                      FirebaseAuth.instance.currentUser!.uid;
-                  await groupService.leaveGroup(groupId);
+                  final groupService = ref.read(groupServiceProvider);
 
+                  await groupService.leaveGroup(groupId);
                   if (context.mounted) Navigator.pop(dialogContext);
 
-                  setState(() {
-                    groups = groupService.getAllGroups(currentAuthUser);
-                  });
+                  ref.invalidate(userGroupsProvider);
 
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
