@@ -1,4 +1,6 @@
-import 'package:event_scheduler/services/event_service.dart';
+import 'package:event_scheduler/other/exceptions.dart';
+import 'package:event_scheduler/providers/event_service_provider.dart';
+import 'package:event_scheduler/providers/firebase_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -38,10 +40,26 @@ class EventWizardNotifier extends Notifier<EventWizard> {
     state = state.copyWith(description: newDescription);
   }
 
-  Future<void> submitEvent() async {
-    print(
-      'Відправляємо в базу: ${state.title}, ${state.description}, ${state.time}',
-    );
+  Future<void> submitEvent(String groupId) async {
+    try {
+      final eventService = ref.read(eventServiceProvider);
+      final firebaseAuth = ref.read(firebaseAuthProvider);
+
+      final currentUser = firebaseAuth.currentUser;
+      if (currentUser == null) throw UserNotAuthenticatedException();
+
+      eventService.createEvent(
+        groupId,
+        firebaseAuth.currentUser!.uid,
+        state.title,
+        state.description,
+        state.time!,
+      );
+
+      state = EventWizard();
+    } catch (e) {
+      rethrow;
+    }
   }
 }
 
@@ -52,8 +70,8 @@ final eventWizardNotifierProvider =
     );
 
 class EventWizardScreen extends ConsumerStatefulWidget {
-  const EventWizardScreen({super.key});
-
+  const EventWizardScreen({super.key, required this.groupId});
+  final String groupId;
   @override
   ConsumerState<EventWizardScreen> createState() => _EventWizardScreenState();
 }
@@ -66,7 +84,6 @@ class _EventWizardScreenState extends ConsumerState<EventWizardScreen> {
 
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
-  DateTime? _selectedDateTime;
 
   @override
   void dispose() {
@@ -145,7 +162,9 @@ class _EventWizardScreenState extends ConsumerState<EventWizardScreen> {
       return;
     }
 
-    await ref.read(eventWizardNotifierProvider.notifier).submitEvent();
+    await ref
+        .read(eventWizardNotifierProvider.notifier)
+        .submitEvent(widget.groupId);
 
     if (mounted) {
       Navigator.pop(context);
@@ -213,7 +232,7 @@ class _EventWizardScreenState extends ConsumerState<EventWizardScreen> {
                   Text(
                     wizardState.time == null
                         ? 'Час ще не обрано'
-                        : 'Обрано: ${_selectedDateTime.toString().substring(0, 16)}',
+                        : 'Обрано: ${wizardState.time!.toString().substring(0, 16)}',
                     style: const TextStyle(fontSize: 18),
                   ),
                   const SizedBox(height: 20),

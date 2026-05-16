@@ -21,7 +21,10 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
           child: Text("Create an event"),
           onPressed: () {
             Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => EventWizardScreen()),
+              MaterialPageRoute(
+                builder: (context) =>
+                    EventWizardScreen(groupId: widget.group.groupId),
+              ),
             );
           },
         ),
