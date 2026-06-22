@@ -42,4 +42,26 @@ class EventService {
       onTimeout: () => throw ConnectionErrorException(),
     );
   }
+
+  Future<List<EventModel>> getAllEvents(String groupId) async {
+    try {
+      final snapshot = await _db
+          .collection(FirebaseConstants.eventsCollection)
+          .where(FirebaseConstants.eventGroupId, isEqualTo: groupId)
+          .get();
+
+      return snapshot.docs
+          .map((doc) => EventModel.fromMap(doc.data(), doc.id))
+          .toList();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> deleteEvent(String eventId) async {
+    await _db
+        .collection(FirebaseConstants.eventsCollection)
+        .doc(eventId)
+        .delete();
+  }
 }
