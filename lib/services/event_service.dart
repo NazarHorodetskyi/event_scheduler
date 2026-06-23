@@ -7,13 +7,13 @@ class EventService {
   EventService({required FirebaseFirestore db}) : _db = db;
   final FirebaseFirestore _db;
 
-  Future<void> createEvent(
-    String groupId,
-    String creatorId,
-    String title,
-    String description,
-    DateTime eventDate,
-  ) async {
+  Future<void> createEvent({
+    required String groupId,
+    required String creatorId,
+    required String title,
+    required String description,
+    required DateTime eventDate,
+  }) async {
     DocumentReference eventDocRef = _db
         .collection(FirebaseConstants.eventsCollection)
         .doc();
@@ -43,7 +43,7 @@ class EventService {
     );
   }
 
-  Future<List<EventModel>> getAllEvents(String groupId) async {
+  Future<List<EventModel>> getAllEvents({required String groupId}) async {
     try {
       final snapshot = await _db
           .collection(FirebaseConstants.eventsCollection)
@@ -58,10 +58,44 @@ class EventService {
     }
   }
 
-  Future<void> deleteEvent(String eventId) async {
-    await _db
-        .collection(FirebaseConstants.eventsCollection)
-        .doc(eventId)
-        .delete();
+  Future<void> deleteEvent({
+    required String eventId,
+    required String currentUserId,
+  }) async {
+    try {
+      final eventRef = _db
+          .collection(FirebaseConstants.eventsCollection)
+          .doc(eventId);
+      final eventDoc = await eventRef.get();
+
+      if (!eventDoc.exists) {
+        throw Exception("Event not found");
+      }
+
+      final eventData = eventDoc.data()!;
+      final String ownerId = eventData[FirebaseConstants.eventCreatorId];
+
+      if (ownerId != currentUserId) {
+        throw Exception("Only owner can delete an event!");
+      }
+
+      WriteBatch batch = _db.batch();
+      batch.delete(eventRef); //delete event document
+
+      final participantsQuery = await _db
+          .collection(FirebaseConstants.usersCollection)
+          .where(FirebaseConstants.acceptedEvents, arrayContains: eventId)
+          .get();
+
+      for (var userDoc in participantsQuery.docs) {
+        batch.update(userDoc.reference, {
+          FirebaseConstants.acceptedEvents: FieldValue.arrayRemove([eventId]),
+        });
+      }
+
+      await batch.commit();
+    } catch (e) {
+      rethrow;
+    }
   }
 }

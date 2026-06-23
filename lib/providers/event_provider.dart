@@ -8,5 +8,5 @@ final groupEventsProvider = FutureProvider.family<List<EventModel>, String>((
 ) async {
   final eventService = ref.watch(eventServiceProvider);
 
-  return eventService.getAllEvents(groupId);
+  return eventService.getAllEvents(groupId: groupId);
 });

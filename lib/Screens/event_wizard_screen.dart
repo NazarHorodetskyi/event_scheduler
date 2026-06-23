@@ -49,11 +49,11 @@ class EventWizardNotifier extends Notifier<EventWizard> {
       if (currentUser == null) throw UserNotAuthenticatedException();
 
       await eventService.createEvent(
-        groupId,
-        firebaseAuth.currentUser!.uid,
-        state.title,
-        state.description,
-        state.time!,
+        groupId: groupId,
+        creatorId: firebaseAuth.currentUser!.uid,
+        title: state.title,
+        description: state.description,
+        eventDate: state.time!,
       );
 
       state = EventWizard();
