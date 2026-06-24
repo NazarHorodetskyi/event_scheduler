@@ -42,6 +42,7 @@ class AuthService {
   Future<DatabaseUser> createUser({
     required String email,
     required String password,
+    required String nickname,
   }) async {
     final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
       email: email,
@@ -145,13 +146,11 @@ class AuthService {
             .doc(userId);
         batch.delete(userRef);
         await batch.commit();
-        print("--- ✅ Дані користувача повністю вичищено з бази ---");
       }
 
       await user.delete();
-      print("--- 🗑️ Акаунт успішно видалено назавжди ---");
     } catch (e) {
-      print("--- ❌ Помилка видалення акаунту: $e ---");
+      rethrow;
     }
   }
 
@@ -166,5 +165,15 @@ class AuthService {
     await currentUser!.reauthenticateWithCredential(credential);
     await currentUser!.updatePassword(newPassword);
     return;
+  }
+
+  Future<bool> isNicknameAvaible(String nickname) async {
+    final snapshot = await _db
+        .collection(FirebaseConstants.usersCollection)
+        .where(FirebaseConstants.nickname, isEqualTo: nickname)
+        .limit(1)
+        .get();
+
+    return snapshot.docs.isEmpty;
   }
 }

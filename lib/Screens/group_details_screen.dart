@@ -2,6 +2,7 @@ import 'package:event_scheduler/models/database_group_model.dart';
 import 'package:event_scheduler/providers/auth_service_provider.dart';
 import 'package:event_scheduler/providers/event_provider.dart';
 import 'package:event_scheduler/providers/event_service_provider.dart';
+import 'package:event_scheduler/providers/group_service_provider.dart';
 import 'package:event_scheduler/screens/event_wizard_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,11 +21,57 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
   Widget build(BuildContext context) {
     final eventsAsync = ref.watch(groupEventsProvider(widget.group.groupId));
     final currentUser = ref.watch(authServiceProvider).currentUser!;
+    final participantsAsync = ref.watch(
+      groupParticipantsProvider(widget.group.groupId),
+    );
 
     return Scaffold(
       appBar: AppBar(title: Text("You are in the group: ${widget.group.name}")),
       body: Column(
         children: [
+          const Padding(
+            padding: EdgeInsets.only(left: 16.0, top: 16.0, bottom: 8.0),
+            child: Text(
+              "Participants:",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+          SizedBox(
+            height: 40,
+            child: participantsAsync.when(
+              data: (names) {
+                if (names.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.only(left: 16),
+                    child: Text("No participants"),
+                  );
+                }
+
+                return ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  itemCount: names.length,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child: Chip(
+                        label: Text(names[index]),
+                        backgroundColor: Colors.blue.shade100,
+                        side: BorderSide.none,
+                      ),
+                    );
+                  },
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, st) => Padding(
+                padding: const EdgeInsets.only(left: 16),
+                child: Text("Error: $e"),
+              ),
+            ),
+          ),
+
+          const Divider(height: 30),
           Expanded(
             child: eventsAsync.when(
               data: (events) {

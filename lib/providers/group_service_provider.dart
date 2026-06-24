@@ -17,3 +17,11 @@ final userGroupsProvider = FutureProvider<List<DatabaseGroup>>((ref) async {
 
   return groupService.getAllGroups(userId);
 });
+
+final groupParticipantsProvider = FutureProvider.family<List<String>, String>((
+  ref,
+  groupId,
+) async {
+  final service = ref.watch(groupServiceProvider);
+  return service.getGroupParticipants(groupId);
+});

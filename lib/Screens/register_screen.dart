@@ -16,15 +16,18 @@ class RegisterScreen extends ConsumerStatefulWidget {
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController nicknameController = TextEditingController();
+
   String errorMessage = "";
 
-  void registerButtonClick() async {
+  void _registerButtonClick() async {
     setState(() {
       errorMessage = "";
     });
 
     if (emailController.text.trim().isEmpty ||
-        passwordController.text.trim().isEmpty) {
+        passwordController.text.trim().isEmpty ||
+        nicknameController.text.trim().isEmpty) {
       setState(() {
         errorMessage = "All fields must be filled";
       });
@@ -32,11 +35,25 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     }
 
     try {
+      final authService = ref.read(authServiceProvider);
+
+      final isNicknameAvaible = await authService.isNicknameAvaible(
+        nicknameController.text.trim(),
+      );
+
+      if (!isNicknameAvaible) {
+        setState(() {
+          errorMessage = "Nickname is not avaible";
+        });
+        return;
+      }
+
       await ref
           .read(authServiceProvider)
           .createUser(
             email: emailController.text.trim(),
             password: passwordController.text.trim(),
+            nickname: nicknameController.text.trim(),
           );
 
       if (mounted) {
@@ -76,6 +93,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   void dispose() {
     emailController.dispose();
     passwordController.dispose();
+    nicknameController.dispose();
     super.dispose();
   }
 
@@ -102,9 +120,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               ),
             ),
             SizedBox(height: 15),
+            TextField(
+              controller: nicknameController,
+              decoration: InputDecoration(
+                hint: Text("Choose nickname"),
+                hintStyle: TextStyle(backgroundColor: Colors.grey[350]),
+              ),
+            ),
+            SizedBox(height: 15),
             FloatingActionButton(
               onPressed: () {
-                registerButtonClick();
+                _registerButtonClick();
               },
               child: Text("Register"),
             ),

@@ -22,7 +22,6 @@ class GroupService {
 
       return groups;
     } catch (e) {
-      print("Помилка завантаження груп: $e");
       return [];
     }
   }
@@ -110,5 +109,42 @@ class GroupService {
       const Duration(seconds: 10),
       onTimeout: () => throw ConnectionErrorException(),
     );
+  }
+
+  Future<List<String>> getGroupParticipants(String groupId) async {
+    try {
+      final groupSnapshot = await _db
+          .collection(FirebaseConstants.groupsCollection)
+          .doc(groupId)
+          .get();
+
+      if (!groupSnapshot.exists) return [];
+
+      List<String> participantsId = List<String>.from(
+        groupSnapshot.data()?[FirebaseConstants.groupMembers] ?? [],
+      );
+
+      if (participantsId.isEmpty) {
+        return [];
+      }
+
+      final userFutures = participantsId.map(
+        (String id) =>
+            _db.collection(FirebaseConstants.usersCollection).doc(id).get(),
+      );
+
+      final userSnapshots = await Future.wait(userFutures);
+
+      return userSnapshots
+          .where((doc) => doc.exists)
+          .map(
+            (doc) =>
+                doc.data()?[FirebaseConstants.nickname]?.toString() ??
+                'Unknown',
+          )
+          .toList();
+    } catch (e) {
+      return [];
+    }
   }
 }
