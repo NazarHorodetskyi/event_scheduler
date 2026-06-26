@@ -19,23 +19,45 @@ class AuthService {
     required String email,
     required String password,
   }) async {
-    final userCredential = await _firebaseAuth.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
+    try {
+      final userCredential = await _firebaseAuth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
-    final uid = userCredential.user!.uid;
-    final docSnapshot = await _db
-        .collection(FirebaseConstants.usersCollection)
-        .doc(uid)
-        .get();
+      final uid = userCredential.user!.uid;
+      final docSnapshot = await _db
+          .collection(FirebaseConstants.usersCollection)
+          .doc(uid)
+          .get();
 
-    if (docSnapshot.exists) {
-      final data = docSnapshot.data();
+      if (docSnapshot.exists) {
+        final data = docSnapshot.data();
 
-      return DatabaseUser.fromMap(data!, uid);
-    } else {
-      throw CouldNotFindUserInDatabase();
+        return DatabaseUser.fromMap(data!, uid);
+      } else {
+        throw CouldNotFindUserInDatabase();
+      }
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case "user-not-found":
+        case "invalid-credential":
+          throw "User not found or passport is incorect";
+        case "invalid-email":
+          throw "Invalid email format";
+        case "user-disabled":
+          throw "This user has been disabled";
+        case "wrong-password":
+          throw "Wrong password";
+        case "too-many-requests":
+          throw "Too many requests, try again later";
+        case "network-request-failed":
+          throw "No internet connection";
+        default:
+          throw "Error: ${e.message}";
+      }
+    } on Exception catch (e) {
+      throw "$e";
     }
   }
 
@@ -44,25 +66,42 @@ class AuthService {
     required String password,
     required String nickname,
   }) async {
-    final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
+    try {
+      final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
-    DatabaseUser newUser = DatabaseUser(
-      uid: userCredential.user!.uid,
-      email: email,
-      nickname: "User",
-      groupIds: [],
-      acceptedEvents: [],
-    );
+      DatabaseUser newUser = DatabaseUser(
+        uid: userCredential.user!.uid,
+        email: email,
+        nickname: nickname,
+        groupIds: [],
+        acceptedEvents: [],
+      );
 
-    await _db
-        .collection(FirebaseConstants.usersCollection)
-        .doc(newUser.uid)
-        .set(newUser.toMap());
+      await _db
+          .collection(FirebaseConstants.usersCollection)
+          .doc(newUser.uid)
+          .set(newUser.toMap());
 
-    return newUser;
+      return newUser;
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case "email-already-in-use":
+          throw Exception("Email already in use");
+        case "invalid-email":
+          throw Exception("Invalid email format");
+        case "weak-password":
+          throw Exception("Weak password");
+        case "network-request-failed":
+          throw Exception("No internet connection");
+        default:
+          throw Exception("${e.message}");
+      }
+    } on Exception catch (e) {
+      throw Exception("$e");
+    }
   }
 
   Future<void> signOut() async {

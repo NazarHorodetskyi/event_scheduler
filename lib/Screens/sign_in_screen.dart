@@ -1,7 +1,6 @@
 import 'package:event_scheduler/providers/auth_service_provider.dart';
 import 'package:event_scheduler/screens/main_screen.dart';
 import 'package:event_scheduler/screens/register_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -45,35 +44,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
           MaterialPageRoute(builder: (context) => MainScreen()),
         );
       }
-    } on FirebaseAuthException catch (e) {
-      String errorText;
-      switch (e.code) {
-        case "user-not-found":
-        case "invalid-credential":
-          errorText = "User not found or passport is incorect";
-          break;
-        case "invalid-email":
-          errorText = "Invalid email format";
-          break;
-        case "user-disabled":
-          errorText = "This user has been disabled";
-          break;
-        case "wrong-password":
-          errorText = "Wrong password";
-          break;
-        case "too-many-requests":
-          errorText = "Too many requests, try again later";
-          break;
-        case "network-request-failed":
-          errorText = "No internet connection";
-          break;
-        default:
-          errorText = "Error: ${e.message}";
-      }
-
+    } catch (e) {
       if (mounted) {
         setState(() {
-          errorMessage = errorText;
+          errorMessage = e.toString();
         });
       }
     }

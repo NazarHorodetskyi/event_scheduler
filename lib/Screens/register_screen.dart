@@ -1,7 +1,6 @@
 import 'package:event_scheduler/providers/auth_service_provider.dart';
 import 'package:event_scheduler/screens/main_screen.dart';
 import 'package:event_scheduler/screens/sign_in_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -48,13 +47,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         return;
       }
 
-      await ref
-          .read(authServiceProvider)
-          .createUser(
-            email: emailController.text.trim(),
-            password: passwordController.text.trim(),
-            nickname: nicknameController.text.trim(),
-          );
+      await authService.createUser(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+        nickname: nicknameController.text.trim(),
+      );
 
       if (mounted) {
         Navigator.pushReplacement(
@@ -62,28 +59,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           MaterialPageRoute(builder: (context) => MainScreen()),
         );
       }
-    } on FirebaseAuthException catch (e) {
-      String errorText = "";
-      switch (e.code) {
-        case "email-already-in-use":
-          errorText = "Email already in use";
-          break;
-        case "invalid-email":
-          errorText = "Invalid email format";
-          break;
-        case "weak-password":
-          errorText = "Weak password";
-          break;
-        case "network-request-failed":
-          errorText = "No internet connection";
-          break;
-        default:
-          errorText = "Error: ${e.message}";
-      }
-
+    } on Exception catch (e) {
       if (mounted) {
         setState(() {
-          errorMessage = errorText;
+          errorMessage = e.toString();
         });
       }
     }
