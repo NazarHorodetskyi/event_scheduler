@@ -1,8 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class FirebaseConstants {
   // collection names
   static const String usersCollection = "users";
   static const String groupsCollection = "groups";
   static const String eventsCollection = "events";
+  static const String invitesCollection = "invites";
 
   // user fields
   static const String userGroups = "groupIds";
@@ -27,4 +30,13 @@ class FirebaseConstants {
   static const String eventDescription = "description";
   static const String eventDate = "date";
   static const String eventParticipants = "participants";
+
+  // invite fields
+  static const String inviteId = "inviteId";
+  static const String inviteGroupId = "groupId";
+  static const String inviteGroupName = "groupName";
+  static const String inviteSenderId = "senderId";
+  static const String inviteReceiverId = "receiverId";
+  static const String inviteStatus = "status";
+  static const String inviteTimestamp = "timestamp";
 }

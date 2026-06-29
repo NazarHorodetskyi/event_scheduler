@@ -23,5 +23,5 @@ final groupParticipantsProvider = FutureProvider.family<List<String>, String>((
   groupId,
 ) async {
   final service = ref.watch(groupServiceProvider);
-  return service.getGroupParticipants(groupId);
+  return service.getGroupMembers(groupId);
 });

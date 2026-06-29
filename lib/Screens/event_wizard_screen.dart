@@ -65,7 +65,7 @@ class EventWizardNotifier extends Notifier<EventWizard> {
 
 // Actual provider which provides a notifier
 final eventWizardNotifierProvider =
-    NotifierProvider<EventWizardNotifier, EventWizard>(
+    NotifierProvider.autoDispose<EventWizardNotifier, EventWizard>(
       () => EventWizardNotifier(),
     );
 
@@ -81,6 +81,7 @@ class _EventWizardScreenState extends ConsumerState<EventWizardScreen> {
 
   int _currentPage = 1;
   final int _totalPages = 3;
+  bool _isLoading = false;
 
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
@@ -162,12 +163,24 @@ class _EventWizardScreenState extends ConsumerState<EventWizardScreen> {
       return;
     }
 
-    await ref
-        .read(eventWizardNotifierProvider.notifier)
-        .submitEvent(widget.groupId);
+    setState(() {
+      _isLoading = true;
+    });
 
-    if (mounted) {
-      Navigator.pop(context);
+    try {
+      await ref
+          .read(eventWizardNotifierProvider.notifier)
+          .submitEvent(widget.groupId);
+
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      _showError("Event creation error: $e");
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -263,11 +276,15 @@ class _EventWizardScreenState extends ConsumerState<EventWizardScreen> {
               TextButton(onPressed: _previousPage, child: const Text('Назад')),
             // Перевіряємо чи дійшли до кінця (3 == 3)
             if (_currentPage == _totalPages)
-              ElevatedButton(
-                onPressed: _submitEvent,
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                child: const Text('Створити'),
-              )
+              _isLoading
+                  ? const CircularProgressIndicator()
+                  : ElevatedButton(
+                      onPressed: _submitEvent,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                      ),
+                      child: const Text('Створити'),
+                    )
             else
               ElevatedButton(onPressed: _nextPage, child: const Text('Далі')),
           ],

@@ -111,7 +111,7 @@ class GroupService {
     );
   }
 
-  Future<List<String>> getGroupParticipants(String groupId) async {
+  Future<List<String>> getGroupMembers(String groupId) async {
     try {
       final groupSnapshot = await _db
           .collection(FirebaseConstants.groupsCollection)
@@ -147,4 +147,8 @@ class GroupService {
       return [];
     }
   }
+
+  // Future<void> addGroupMember({required String nickname}) {
+  //   return;
+  // }
 }
