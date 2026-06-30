@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:event_scheduler/models/database_group_model.dart';
+import 'package:event_scheduler/models/database_invite_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import "package:event_scheduler/other/firebase_constants.dart";
 import 'package:event_scheduler/other/exceptions.dart';
@@ -17,7 +18,7 @@ class GroupService {
           .get();
 
       List<DatabaseGroup> groups = snapshot.docs.map((doc) {
-        return DatabaseGroup.fromMap(doc.data(), doc.id);
+        return DatabaseGroup.fromMap(doc.data());
       }).toList();
 
       return groups;
@@ -148,7 +149,27 @@ class GroupService {
     }
   }
 
-  // Future<void> addGroupMember({required String nickname}) {
-  //   return;
-  // }
+  Future<void> sendInvite({
+    required String groupId,
+    required String groupName,
+    required String senderId,
+    required String receiverId,
+  }) async {
+    final String inviteId = '${groupId}_$receiverId';
+
+    final newInvite = DatabaseInvite(
+      inviteId: inviteId,
+      groupId: groupId,
+      groupName: groupName,
+      senderId: senderId,
+      receiverId: receiverId,
+      status: 'pending',
+      statusChangeTime: DateTime.now(),
+    );
+
+    await _db
+        .collection(FirebaseConstants.invitesCollection)
+        .doc(inviteId)
+        .set(newInvite.toMap());
+  }
 }

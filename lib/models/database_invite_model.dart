@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:event_scheduler/other/firebase_constants.dart';
 
 class DatabaseInvite {
@@ -31,5 +32,16 @@ class DatabaseInvite {
     };
   }
 
-  // factory DatabaseInvite.fromMap(Map<String, dynamic> map, )
+  factory DatabaseInvite.fromMap(Map<String, dynamic> map) {
+    return DatabaseInvite(
+      inviteId: map[FirebaseConstants.inviteId] ?? "",
+      groupId: map[FirebaseConstants.inviteGroupId] ?? "",
+      groupName: map[FirebaseConstants.inviteGroupName] ?? "",
+      senderId: map[FirebaseConstants.inviteSenderId] ?? "",
+      receiverId: map[FirebaseConstants.inviteReceiverId] ?? "",
+      status: map[FirebaseConstants.inviteStatus] ?? "",
+      statusChangeTime: (map[FirebaseConstants.inviteTimestamp] as Timestamp)
+          .toDate(),
+    );
+  }
 }

@@ -20,7 +20,7 @@ class DatabaseGroup {
     required this.description,
   });
 
-  factory DatabaseGroup.fromMap(Map<String, dynamic> map, String id) {
+  factory DatabaseGroup.fromMap(Map<String, dynamic> map) {
     return DatabaseGroup(
       name: map[FirebaseConstants.groupName] ?? '',
       ownerId: map[FirebaseConstants.groupOwnerId] ?? "",
