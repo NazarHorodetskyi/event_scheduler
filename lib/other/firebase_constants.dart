@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class FirebaseConstants {
   // collection names
   static const String usersCollection = "users";
@@ -39,4 +37,8 @@ class FirebaseConstants {
   static const String inviteReceiverId = "receiverId";
   static const String inviteStatus = "status";
   static const String inviteTimestamp = "timestamp";
+
+  // Invite statuses
+  static const String inviteStatusPending = "pending";
+  static const String inviteStatusRejected = "rejected";
 }
