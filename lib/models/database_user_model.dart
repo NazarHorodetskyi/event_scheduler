@@ -17,6 +17,7 @@ class DatabaseUser {
 
   Map<String, dynamic> toMap() {
     return {
+      FirebaseConstants.userId: uid,
       FirebaseConstants.email: email,
       FirebaseConstants.nickname: nickname,
       FirebaseConstants.userGroups: groupIds,
@@ -24,9 +25,9 @@ class DatabaseUser {
     };
   }
 
-  factory DatabaseUser.fromMap(Map<String, dynamic> map, String documentId) {
+  factory DatabaseUser.fromMap(Map<String, dynamic> map) {
     return DatabaseUser(
-      uid: documentId,
+      uid: map[FirebaseConstants.userId] ?? "",
       email: map[FirebaseConstants.email] ?? '',
       nickname: map[FirebaseConstants.nickname] ?? 'User',
       groupIds: List<String>.from(map[FirebaseConstants.userGroups] ?? []),

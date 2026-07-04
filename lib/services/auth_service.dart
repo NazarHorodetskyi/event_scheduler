@@ -15,6 +15,20 @@ class AuthService {
 
   User? get currentUser => _firebaseAuth.currentUser;
 
+  Future<DatabaseUser?> getUserByNickname({required String nickname}) async {
+    final querySnapshot = await _db
+        .collection(FirebaseConstants.usersCollection)
+        .where(FirebaseConstants.nickname, isEqualTo: nickname)
+        .limit(1)
+        .get();
+
+    if (querySnapshot.docs.isEmpty) {
+      return null;
+    }
+
+    return DatabaseUser.fromMap(querySnapshot.docs.first.data());
+  }
+
   Future<DatabaseUser> signIn({
     required String email,
     required String password,
@@ -34,7 +48,7 @@ class AuthService {
       if (docSnapshot.exists) {
         final data = docSnapshot.data();
 
-        return DatabaseUser.fromMap(data!, uid);
+        return DatabaseUser.fromMap(data!);
       } else {
         throw CouldNotFindUserInDatabase();
       }
