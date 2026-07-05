@@ -6,7 +6,21 @@ class InviteService {
   InviteService({required FirebaseFirestore db}) : _db = db;
   final FirebaseFirestore _db;
 
-  // TODO Get invites and store in memory (status pending)
+  Stream<List<DatabaseInvite>> getInvites({required String receiverId}) {
+    return _db
+        .collection(FirebaseConstants.invitesCollection)
+        .where(FirebaseConstants.inviteReceiverId, isEqualTo: receiverId)
+        .where(
+          FirebaseConstants.inviteStatus,
+          isEqualTo: FirebaseConstants.inviteStatusPending,
+        )
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map((doc) => DatabaseInvite.fromMap(doc.data()))
+              .toList();
+        });
+  }
 
   Future<void> sendInvite({
     required String groupId,

@@ -1,6 +1,5 @@
 import 'package:event_scheduler/models/database_group_model.dart';
 import 'package:event_scheduler/providers/auth_service_provider.dart';
-import 'package:event_scheduler/providers/event_provider.dart';
 import 'package:event_scheduler/providers/event_service_provider.dart';
 import 'package:event_scheduler/providers/group_service_provider.dart';
 import 'package:event_scheduler/screens/event_wizard_screen.dart';
