@@ -10,7 +10,7 @@ final inviteServiceProvider = Provider<InviteService>((ref) {
 
 final pendingInvitesProvider = StreamProvider.autoDispose
     .family<List<DatabaseInvite>, String>((ref, userId) {
-      final inviteService = ref.read(inviteServiceProvider);
+      final inviteService = ref.watch(inviteServiceProvider);
 
       return inviteService.getInvites(receiverId: userId);
     });

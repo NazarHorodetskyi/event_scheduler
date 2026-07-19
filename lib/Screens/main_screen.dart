@@ -3,6 +3,7 @@ import 'package:event_scheduler/providers/auth_service_provider.dart';
 import 'package:event_scheduler/providers/firebase_providers.dart';
 import 'package:event_scheduler/providers/group_service_provider.dart';
 import 'package:event_scheduler/screens/group_details_screen.dart';
+import 'package:event_scheduler/screens/messages_screen.dart';
 import 'package:event_scheduler/screens/sign_in_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -40,6 +41,14 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                     }
                   },
                   child: Text("Вийти"),
+                ),
+                IconButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => MessageScreen()),
+                    );
+                  },
+                  icon: Icon(Icons.message_outlined),
                 ),
               ],
             ),

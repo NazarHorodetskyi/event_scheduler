@@ -30,7 +30,7 @@ class DatabaseGroup {
       recentMessageTime: map[FirebaseConstants.recentMessageTime] != null
           ? (map[FirebaseConstants.recentMessageTime] as Timestamp).toDate()
           : null,
-      description: map[FirebaseConstants.groupDescription],
+      description: map[FirebaseConstants.groupDescription] ?? "",
     );
   }
 
