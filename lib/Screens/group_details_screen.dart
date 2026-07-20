@@ -2,6 +2,7 @@ import 'package:event_scheduler/models/database_group_model.dart';
 import 'package:event_scheduler/providers/auth_service_provider.dart';
 import 'package:event_scheduler/providers/event_service_provider.dart';
 import 'package:event_scheduler/providers/group_service_provider.dart';
+import 'package:event_scheduler/screens/add_participants_screen.dart';
 import 'package:event_scheduler/screens/event_wizard_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -28,6 +29,15 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
       appBar: AppBar(title: Text("You are in the group: ${widget.group.name}")),
       body: Column(
         children: [
+          FloatingActionButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => AddingScreen(group: widget.group),
+                ),
+              );
+            },
+          ),
           const Padding(
             padding: EdgeInsets.only(left: 16.0, top: 16.0, bottom: 8.0),
             child: Text(
