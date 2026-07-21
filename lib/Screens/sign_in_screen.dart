@@ -93,6 +93,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             ),
             SizedBox(height: 15),
             FloatingActionButton(
+              heroTag: null,
               onPressed: () {
                 signInButtonClick();
               },

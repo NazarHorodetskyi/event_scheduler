@@ -11,6 +11,7 @@ class WelcomeScreen extends StatelessWidget {
         child: Column(
           children: [
             FloatingActionButton(
+              heroTag: null,
               onPressed: () {
                 // go to log in
               },
@@ -18,6 +19,7 @@ class WelcomeScreen extends StatelessWidget {
             ),
             SizedBox(height: 15),
             FloatingActionButton(
+              heroTag: null,
               onPressed: () {
                 // go to register screen
               },

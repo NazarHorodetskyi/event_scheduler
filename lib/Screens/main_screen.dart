@@ -29,6 +29,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
               children: [
                 Text("Succesfuly logged in"),
                 FloatingActionButton(
+                  heroTag: null,
                   onPressed: () async {
                     await ref.read(authServiceProvider).signOut();
                     if (context.mounted) {
@@ -53,6 +54,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
               ],
             ),
             FloatingActionButton(
+              heroTag: null,
               onPressed: () {
                 _showCreateGroupDialog(context);
               },

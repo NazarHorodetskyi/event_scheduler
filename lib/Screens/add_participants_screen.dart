@@ -21,10 +21,11 @@ class _AddingScreenState extends ConsumerState<AddingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(),
       body: Column(
         children: [
           TextField(controller: searchController),
-          FloatingActionButton(
+          ElevatedButton(
             child: Text("Search"),
             onPressed: () async {
               String nickname = searchController.text.trim();
@@ -70,7 +71,7 @@ class _AddingScreenState extends ConsumerState<AddingScreen> {
 
           if (isUserFound == false && searchController.text.isNotEmpty) ...{
             Text("User not found"),
-          } else ...{
+          } else if (isUserFound && currentSearchUser != null) ...{
             GestureDetector(
               onTap: () {
                 // User already in group
@@ -129,6 +130,7 @@ class _AddingScreenState extends ConsumerState<AddingScreen> {
             SizedBox(height: 10),
             // Add button
             FloatingActionButton(
+              heroTag: null,
               child: Text("Add"),
               onPressed: () async {
                 final senderId = ref.read(authServiceProvider).currentUser!.uid;

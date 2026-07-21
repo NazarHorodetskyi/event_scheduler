@@ -30,6 +30,7 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
       body: Column(
         children: [
           FloatingActionButton(
+            heroTag: null,
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
@@ -149,6 +150,7 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
           ),
           Center(
             child: FloatingActionButton(
+              heroTag: null,
               child: Text("Create an event"),
               onPressed: () async {
                 await Navigator.of(context).push(

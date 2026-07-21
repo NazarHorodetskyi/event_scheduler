@@ -108,6 +108,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             ),
             SizedBox(height: 15),
             FloatingActionButton(
+              heroTag: null,
               onPressed: () {
                 _registerButtonClick();
               },
