@@ -9,6 +9,7 @@ class EventModel {
   final String description;
   final DateTime eventDate;
   final List<String> participants;
+  final List<String> decliners;
 
   EventModel({
     required this.eventId,
@@ -18,6 +19,7 @@ class EventModel {
     required this.description,
     required this.eventDate,
     required this.participants,
+    required this.decliners,
   });
 
   factory EventModel.fromMap(Map<String, dynamic> map, String documentId) {
@@ -31,6 +33,7 @@ class EventModel {
       participants: List<String>.from(
         map[FirebaseConstants.eventParticipants] ?? [],
       ),
+      decliners: List<String>.from(map[FirebaseConstants.eventDecliners] ?? []),
     );
   }
 

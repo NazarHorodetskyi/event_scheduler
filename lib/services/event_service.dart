@@ -26,6 +26,7 @@ class EventService {
       description: description,
       eventDate: eventDate,
       participants: [creatorId],
+      decliners: [],
     );
 
     WriteBatch batch = _db.batch();
@@ -97,5 +98,53 @@ class EventService {
     } catch (e) {
       rethrow;
     }
+  }
+
+  Future<void> agreeToEvent(String userId, String eventId) async {
+    final userDocRef = _db
+        .collection(FirebaseConstants.usersCollection)
+        .doc(userId);
+    final eventDocRef = _db
+        .collection(FirebaseConstants.eventsCollection)
+        .doc(eventId);
+
+    WriteBatch batch = _db.batch();
+
+    // Add event to user
+    batch.update(userDocRef, {
+      FirebaseConstants.acceptedEvents: FieldValue.arrayUnion([eventId]),
+    });
+
+    // Add user to event participants and remove from decliners
+    batch.update(eventDocRef, {
+      FirebaseConstants.eventParticipants: FieldValue.arrayUnion([userId]),
+      FirebaseConstants.eventDecliners: FieldValue.arrayRemove([userId]),
+    });
+
+    await batch.commit();
+  }
+
+  Future<void> declineTheEvent(String userId, String eventId) async {
+    final userDocRef = _db
+        .collection(FirebaseConstants.usersCollection)
+        .doc(userId);
+    final eventDocRef = _db
+        .collection(FirebaseConstants.eventsCollection)
+        .doc(eventId);
+
+    WriteBatch batch = _db.batch();
+
+    // Remove event from user
+    batch.update(userDocRef, {
+      FirebaseConstants.acceptedEvents: FieldValue.arrayRemove([eventId]),
+    });
+
+    // Add user to decliners and remove from participants
+    batch.update(eventDocRef, {
+      FirebaseConstants.eventParticipants: FieldValue.arrayRemove([userId]),
+      FirebaseConstants.eventDecliners: FieldValue.arrayUnion([userId]),
+    });
+
+    await batch.commit();
   }
 }
