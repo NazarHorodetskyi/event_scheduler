@@ -94,51 +94,128 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
                   itemBuilder: (context, index) {
                     final event = events[index];
                     final isOwner = currentUser.uid == event.creatorId;
-                    return ListTile(
-                      title: Text(event.title),
-                      subtitle: Text(event.description),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(event.eventDate.toString().substring(0, 16)),
+                    return Column(
+                      children: [
+                        ListTile(
+                          title: Text(event.title),
+                          subtitle: Text(event.description),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(event.eventDate.toString().substring(0, 16)),
 
-                          if (isOwner)
-                            IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () async {
-                                try {
-                                  final eventService = ref.read(
-                                    eventServiceProvider,
-                                  );
-                                  await eventService.deleteEvent(
-                                    eventId: event.eventId,
-                                    currentUserId: currentUser.uid,
-                                  );
+                              if (!event.participants.contains(
+                                currentUser.uid,
+                              )) ...{
+                                ElevatedButton(
+                                  child: Text("Agree"),
+                                  onPressed: () async {
+                                    try {
+                                      await ref
+                                          .read(eventServiceProvider)
+                                          .agreeToEvent(
+                                            currentUser.uid,
+                                            event.eventId,
+                                          );
 
-                                  ref.invalidate(
-                                    groupEventsProvider(event.groupId),
-                                  );
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Event deleted!'),
-                                      ),
-                                    );
-                                  }
-                                } catch (e) {
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(e.toString()),
-                                        backgroundColor: Colors.red,
-                                      ),
-                                    );
-                                  }
-                                }
+                                      ref.invalidate(eventServiceProvider);
+                                    } catch (e) {
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(content: Text(e.toString())),
+                                        );
+                                      }
+                                    }
+                                  },
+                                ),
                               },
+
+                              if (!event.decliners.contains(
+                                currentUser.uid,
+                              )) ...{
+                                ElevatedButton(
+                                  child: Text("Decline"),
+                                  onPressed: () async {
+                                    try {
+                                      await ref
+                                          .read(eventServiceProvider)
+                                          .declineTheEvent(
+                                            currentUser.uid,
+                                            event.eventId,
+                                          );
+
+                                      ref.invalidate(eventServiceProvider);
+                                    } catch (e) {
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(content: Text(e.toString())),
+                                        );
+                                      }
+                                    }
+                                  },
+                                ),
+                              },
+
+                              // Delete button
+                              if (isOwner)
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.delete,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed: () async {
+                                    try {
+                                      final eventService = ref.read(
+                                        eventServiceProvider,
+                                      );
+                                      await eventService.deleteEvent(
+                                        eventId: event.eventId,
+                                        currentUserId: currentUser.uid,
+                                      );
+
+                                      ref.invalidate(
+                                        groupEventsProvider(event.groupId),
+                                      );
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('Event deleted!'),
+                                          ),
+                                        );
+                                      }
+                                    } catch (e) {
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(e.toString()),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                      }
+                                    }
+                                  },
+                                ),
+                            ],
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Text("Participants: ${event.participants.length}"),
+                            Text("Decliners: ${event.decliners.length}"),
+                            Text(
+                              "Group members ${widget.group.members.length}",
                             ),
-                        ],
-                      ),
+                          ],
+                        ),
+                      ],
                     );
                   },
                 );
