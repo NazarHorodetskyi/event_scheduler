@@ -76,7 +76,8 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                             Navigator.of(context).push(
                               MaterialPageRoute(
                                 builder: (context) => GroupDetailsScreen(
-                                  group: groupsToView[index],
+                                  groupId: groupsToView[index].groupId,
+                                  groupName: groupsToView[index].name,
                                 ),
                               ),
                             );

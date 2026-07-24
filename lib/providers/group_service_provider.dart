@@ -25,3 +25,9 @@ final groupParticipantsProvider = FutureProvider.family<List<String>, String>((
   final service = ref.watch(groupServiceProvider);
   return service.getGroupMembers(groupId);
 });
+
+final groupDetailsProvider = FutureProvider.autoDispose
+    .family<DatabaseGroup, String>((ref, groupId) {
+      final groupService = ref.watch(groupServiceProvider);
+      return groupService.getGroupById(groupId: groupId);
+    });

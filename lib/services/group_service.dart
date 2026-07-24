@@ -26,6 +26,24 @@ class GroupService {
     }
   }
 
+  Future<DatabaseGroup> getGroupById({required String groupId}) async {
+    try {
+      final snapshot = await _db
+          .collection(FirebaseConstants.groupsCollection)
+          .doc(groupId)
+          .get();
+      final data = snapshot.data();
+
+      if (data != null) {
+        return DatabaseGroup.fromMap(data);
+      } else {
+        throw Exception("Group doesnt exist");
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<void> createGroup(String ownerId, String groupName) async {
     DocumentReference groupDocRef = _db
         .collection(FirebaseConstants.groupsCollection)
