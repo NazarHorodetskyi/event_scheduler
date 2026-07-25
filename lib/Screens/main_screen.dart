@@ -20,6 +20,10 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   Widget build(BuildContext context) {
     final groups = ref.watch(userGroupsProvider);
 
+    Future<void> refresh() async {
+      await Future.wait([ref.refresh(userGroupsProvider.future)]);
+    }
+
     return Scaffold(
       appBar: AppBar(title: Text("Something here")),
       body: Center(
@@ -66,35 +70,39 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                   if (groupsToView.isEmpty) {
                     return const Center(child: Text("You have no groups"));
                   }
-                  return ListView.builder(
-                    itemCount: groupsToView.length,
-                    itemBuilder: (context, index) {
-                      return Card(
-                        margin: EdgeInsets.all(8.0),
-                        child: ListTile(
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => GroupDetailsScreen(
-                                  groupId: groupsToView[index].groupId,
-                                  groupName: groupsToView[index].name,
+                  return RefreshIndicator(
+                    onRefresh: refresh,
+                    child: ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      itemCount: groupsToView.length,
+                      itemBuilder: (context, index) {
+                        return Card(
+                          margin: EdgeInsets.all(8.0),
+                          child: ListTile(
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => GroupDetailsScreen(
+                                    groupId: groupsToView[index].groupId,
+                                    groupName: groupsToView[index].name,
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
-                          title: Text(groupsToView[index].name),
-                          trailing: IconButton(
-                            icon: Icon(Icons.exit_to_app, color: Colors.red),
-                            onPressed: () {
-                              _showDeleteDialog(
-                                context: context,
-                                groupId: groupsToView[index].groupId,
                               );
                             },
+                            title: Text(groupsToView[index].name),
+                            trailing: IconButton(
+                              icon: Icon(Icons.exit_to_app, color: Colors.red),
+                              onPressed: () {
+                                _showDeleteDialog(
+                                  context: context,
+                                  groupId: groupsToView[index].groupId,
+                                );
+                              },
+                            ),
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
