@@ -2,6 +2,7 @@ import 'package:event_scheduler/other/exceptions.dart';
 import 'package:event_scheduler/providers/auth_service_provider.dart';
 import 'package:event_scheduler/providers/firebase_providers.dart';
 import 'package:event_scheduler/providers/group_service_provider.dart';
+import 'package:event_scheduler/providers/invite_service_provider.dart';
 import 'package:event_scheduler/screens/group_details_screen.dart';
 import 'package:event_scheduler/screens/messages_screen.dart';
 import 'package:event_scheduler/screens/sign_in_screen.dart';
@@ -16,13 +17,23 @@ class MainScreen extends ConsumerStatefulWidget {
 }
 
 class _MainScreenState extends ConsumerState<MainScreen> {
+  Future<void> refresh() async {
+    await Future.wait([ref.refresh(userGroupsProvider.future)]);
+  }
+
   @override
   Widget build(BuildContext context) {
     final groups = ref.watch(userGroupsProvider);
+    final currentUser = ref.watch(authServiceProvider).currentUser;
 
-    Future<void> refresh() async {
-      await Future.wait([ref.refresh(userGroupsProvider.future)]);
-    }
+    final invites = currentUser != null
+        ? ref.watch(pendingInvitesProvider(currentUser.uid))
+        : const AsyncValue.loading();
+
+    final hasUnreadNotifications = invites.maybeWhen(
+      data: (invitesList) => invitesList.isNotEmpty,
+      orElse: () => false,
+    );
 
     return Scaffold(
       appBar: AppBar(title: Text("Something here")),
@@ -50,15 +61,19 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                     },
                     child: Text("Вийти"),
                   ),
-                  IconButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => MessageScreen(),
-                        ),
-                      );
-                    },
-                    icon: Icon(Icons.message_outlined),
+                  Badge(
+                    backgroundColor: Colors.red,
+                    isLabelVisible: hasUnreadNotifications,
+                    child: IconButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => MessageScreen(),
+                          ),
+                        );
+                      },
+                      icon: Icon(Icons.message_outlined),
+                    ),
                   ),
                 ],
               ),

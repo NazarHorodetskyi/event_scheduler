@@ -17,9 +17,7 @@ class EventScheduler extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Screen?',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
+      theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.amber),
       home: SignInScreen(),
     );
   }
