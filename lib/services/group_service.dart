@@ -93,10 +93,24 @@ class GroupService {
       groupData?[FirebaseConstants.groupMembers] ?? [],
     );
 
+    // Group events
+    final groupEvents = await _db
+        .collection(FirebaseConstants.eventsCollection)
+        .where(FirebaseConstants.eventGroupId, isEqualTo: groupId)
+        .get();
+
     String ownerId = groupData?[FirebaseConstants.groupOwnerId] ?? "";
+    bool deleteGroup = (members.length == 1) && members.contains(userId);
 
     WriteBatch batch = _db.batch();
+    // New owner
+    if (userId == ownerId && !deleteGroup) {
+      ownerId = members.firstWhere((id) => id != userId, orElse: () => "");
 
+      batch.update(groupRef, {FirebaseConstants.groupOwnerId: ownerId});
+    }
+
+    // Delete group from user
     DocumentReference userRef = _db
         .collection(FirebaseConstants.usersCollection)
         .doc(userId);
@@ -104,23 +118,50 @@ class GroupService {
       FirebaseConstants.userGroups: FieldValue.arrayRemove([groupId]),
     });
 
-    if (members.length == 1 && members.contains(userId)) {
+    // Delete user from group
+    if (deleteGroup) {
       batch.delete(groupRef);
+      // Delete group events
+      for (var doc in groupEvents.docs) {
+        batch.delete(doc.reference);
+      }
     } else {
       batch.update(groupRef, {
         FirebaseConstants.groupMembers: FieldValue.arrayRemove([userId]),
       });
+    }
 
-      if (userId == ownerId) {
-        final newOwner = members.firstWhere(
-          (id) => id != userId,
-          orElse: () => "",
-        );
+    List<String> groupEventsIds = [];
+    // Remove user from any events
+    for (var doc in groupEvents.docs) {
+      final eventData = doc.data();
+      groupEventsIds.add(eventData[FirebaseConstants.eventId]);
 
-        if (newOwner.isNotEmpty) {
-          batch.update(groupRef, {FirebaseConstants.groupOwnerId: newOwner});
-        }
+      if (deleteGroup) {
+        continue;
       }
+
+      // Standart update
+      Map<String, dynamic> eventUpdates = {
+        FirebaseConstants.eventParticipants: FieldValue.arrayRemove([userId]),
+        FirebaseConstants.eventDecliners: FieldValue.arrayRemove([userId]),
+      };
+
+      // If user is owner
+      if (eventData[FirebaseConstants.eventCreatorId] == userId) {
+        eventUpdates[FirebaseConstants.eventCreatorId] = ownerId;
+      }
+
+      batch.update(doc.reference, eventUpdates);
+    }
+
+    // Remove from accepted events
+    if (groupEventsIds.isNotEmpty) {
+      batch.update(userRef, {
+        FirebaseConstants.acceptedEvents: FieldValue.arrayRemove(
+          groupEventsIds,
+        ),
+      });
     }
 
     await batch.commit().timeout(

@@ -26,90 +26,92 @@ class _MainScreenState extends ConsumerState<MainScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text("Something here")),
-      body: Center(
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Text("Succesfuly logged in"),
-                FloatingActionButton(
-                  heroTag: null,
-                  onPressed: () async {
-                    await ref.read(authServiceProvider).signOut();
-                    if (context.mounted) {
-                      Navigator.pushReplacement(
-                        context,
+      body: RefreshIndicator(
+        onRefresh: refresh,
+        child: SingleChildScrollView(
+          physics: AlwaysScrollableScrollPhysics(),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Text("Succesfuly logged in"),
+                  FloatingActionButton(
+                    heroTag: null,
+                    onPressed: () async {
+                      await ref.read(authServiceProvider).signOut();
+                      if (context.mounted) {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SignInScreen(),
+                          ),
+                        );
+                      }
+                    },
+                    child: Text("Вийти"),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) => const SignInScreen(),
+                          builder: (context) => MessageScreen(),
                         ),
                       );
-                    }
-                  },
-                  child: Text("Вийти"),
-                ),
-                IconButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => MessageScreen()),
-                    );
-                  },
-                  icon: Icon(Icons.message_outlined),
-                ),
-              ],
-            ),
-            FloatingActionButton(
-              heroTag: null,
-              onPressed: () {
-                _showCreateGroupDialog(context);
-              },
-              child: Icon(Icons.add_box_rounded),
-            ),
-            Expanded(
-              child: groups.when(
+                    },
+                    icon: Icon(Icons.message_outlined),
+                  ),
+                ],
+              ),
+              FloatingActionButton(
+                heroTag: null,
+                onPressed: () {
+                  _showCreateGroupDialog(context);
+                },
+                child: Icon(Icons.add_box_rounded),
+              ),
+              groups.when(
                 data: (groupsToView) {
                   if (groupsToView.isEmpty) {
                     return const Center(child: Text("You have no groups"));
                   }
-                  return RefreshIndicator(
-                    onRefresh: refresh,
-                    child: ListView.builder(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      itemCount: groupsToView.length,
-                      itemBuilder: (context, index) {
-                        return Card(
-                          margin: EdgeInsets.all(8.0),
-                          child: ListTile(
-                            onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => GroupDetailsScreen(
-                                    groupId: groupsToView[index].groupId,
-                                    groupName: groupsToView[index].name,
-                                  ),
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: groupsToView.length,
+                    itemBuilder: (context, index) {
+                      return Card(
+                        margin: EdgeInsets.all(8.0),
+                        child: ListTile(
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => GroupDetailsScreen(
+                                  groupId: groupsToView[index].groupId,
+                                  groupName: groupsToView[index].name,
                                 ),
+                              ),
+                            );
+                          },
+                          title: Text(groupsToView[index].name),
+                          trailing: IconButton(
+                            icon: Icon(Icons.exit_to_app, color: Colors.red),
+                            onPressed: () {
+                              _showDeleteDialog(
+                                context: context,
+                                groupId: groupsToView[index].groupId,
                               );
                             },
-                            title: Text(groupsToView[index].name),
-                            trailing: IconButton(
-                              icon: Icon(Icons.exit_to_app, color: Colors.red),
-                              onPressed: () {
-                                _showDeleteDialog(
-                                  context: context,
-                                  groupId: groupsToView[index].groupId,
-                                );
-                              },
-                            ),
                           ),
-                        );
-                      },
-                    ),
+                        ),
+                      );
+                    },
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (error, stack) => Center(child: Text('Error: $error')),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

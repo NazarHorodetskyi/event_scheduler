@@ -24,7 +24,6 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
   Future<void> _refresh() async {
     await Future.wait([
       ref.refresh(groupDetailsProvider(widget.groupId).future),
-      ref.refresh(groupParticipantsProvider(widget.groupId).future),
       ref.refresh(groupEventsProvider(widget.groupId).future),
     ]);
   }
@@ -288,7 +287,7 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
                           ),
                         );
 
-                        ref.invalidate(groupEventsProvider);
+                        ref.invalidate(groupEventsProvider(group.groupId));
                       },
                     ),
                   ),

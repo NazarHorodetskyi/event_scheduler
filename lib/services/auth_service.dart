@@ -15,6 +15,33 @@ class AuthService {
 
   User? get currentUser => _firebaseAuth.currentUser;
 
+  Future<List<String>> getNamesByIds(List<String> ids) async {
+    if (ids.isEmpty) {
+      return [];
+    }
+
+    try {
+      final futures = ids.map(
+        (id) => _db.collection(FirebaseConstants.usersCollection).doc(id).get(),
+      );
+
+      final snapshots = await Future.wait(futures);
+      List<String> names = [];
+
+      for (var doc in snapshots) {
+        if (doc.exists && doc.data() != null) {
+          final data = doc.data() as Map<String, dynamic>;
+          final name = data[FirebaseConstants.nickname] ?? "Unknown user";
+          names.add(name);
+        }
+      }
+
+      return names;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<DatabaseUser?> getUserByNickname({required String nickname}) async {
     final querySnapshot = await _db
         .collection(FirebaseConstants.usersCollection)
