@@ -5,7 +5,6 @@ import 'package:event_scheduler/providers/group_service_provider.dart';
 import 'package:event_scheduler/providers/invite_service_provider.dart';
 import 'package:event_scheduler/screens/group_details_screen.dart';
 import 'package:event_scheduler/screens/messages_screen.dart';
-import 'package:event_scheduler/screens/sign_in_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -45,21 +44,12 @@ class _MainScreenState extends ConsumerState<MainScreen> {
             children: [
               Row(
                 children: [
-                  Text("Succesfuly logged in"),
                   FloatingActionButton(
                     heroTag: null,
                     onPressed: () async {
                       await ref.read(authServiceProvider).signOut();
-                      if (context.mounted) {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const SignInScreen(),
-                          ),
-                        );
-                      }
                     },
-                    child: Text("Вийти"),
+                    child: Text("Log out"),
                   ),
                   Badge(
                     backgroundColor: Colors.red,
