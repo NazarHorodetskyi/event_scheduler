@@ -1,4 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:event_scheduler/models/database_event_model.dart';
 import 'package:event_scheduler/other/exceptions.dart';
+import 'package:event_scheduler/other/firebase_constants.dart';
 import 'package:event_scheduler/providers/event_service_provider.dart';
 import 'package:event_scheduler/providers/firebase_providers.dart';
 import 'package:flutter/material.dart';
@@ -40,7 +43,7 @@ class EventWizardNotifier extends Notifier<EventWizard> {
     state = state.copyWith(description: newDescription);
   }
 
-  Future<void> submitEvent(String groupId) async {
+  Future<void> submitEvent(String groupId, String? eventId) async {
     try {
       final eventService = ref.read(eventServiceProvider);
       final firebaseAuth = ref.read(firebaseAuthProvider);
@@ -48,6 +51,24 @@ class EventWizardNotifier extends Notifier<EventWizard> {
       final currentUser = firebaseAuth.currentUser;
       if (currentUser == null) throw UserNotAuthenticatedException();
 
+      // Event editing block
+      if (eventId != null) {
+        final newEventData = {
+          FirebaseConstants.eventTitle: state.title,
+          FirebaseConstants.eventDescription: state.description,
+          FirebaseConstants.eventDate: Timestamp.fromDate(state.time!),
+          FirebaseConstants.eventEditTime: FieldValue.serverTimestamp(),
+        };
+
+        await eventService.updateEvent(
+          eventId: eventId,
+          newEventData: newEventData,
+        );
+        state = EventWizard();
+        return;
+      }
+
+      // Default creating block
       await eventService.createEvent(
         groupId: groupId,
         creatorId: firebaseAuth.currentUser!.uid,
@@ -70,8 +91,13 @@ final eventWizardNotifierProvider =
     );
 
 class EventWizardScreen extends ConsumerStatefulWidget {
-  const EventWizardScreen({super.key, required this.groupId});
+  const EventWizardScreen({
+    super.key,
+    required this.groupId,
+    this.existingEvent,
+  });
   final String groupId;
+  final EventModel? existingEvent;
   @override
   ConsumerState<EventWizardScreen> createState() => _EventWizardScreenState();
 }
@@ -85,6 +111,25 @@ class _EventWizardScreenState extends ConsumerState<EventWizardScreen> {
 
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+
+    final event = widget.existingEvent;
+
+    if (event != null) {
+      _titleController.text = event.title;
+      _descController.text = event.description;
+
+      Future.microtask(() {
+        final notifier = ref.read(eventWizardNotifierProvider.notifier);
+        notifier.updateTitle(event.title);
+        notifier.updateDescription(event.description);
+        notifier.updateTime(event.eventDate);
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -128,7 +173,7 @@ class _EventWizardScreenState extends ConsumerState<EventWizardScreen> {
   void _nextPage() {
     if (_currentPage == 1) {
       if (_titleController.text.trim().length <= 3) {
-        _showError('Назва має містити більше 3 символів');
+        _showError('Event name should have at least 3 symbols');
         return;
       }
       ref
@@ -154,12 +199,12 @@ class _EventWizardScreenState extends ConsumerState<EventWizardScreen> {
     final wizardState = ref.read(eventWizardNotifierProvider);
 
     if (wizardState.time == null) {
-      _showError('Будь ласка, оберіть дату та час події');
+      _showError('Pick date and time!');
       return;
     }
 
     if (wizardState.time!.isBefore(DateTime.now())) {
-      _showError('Час події вже минув. Оберіть майбутній час!');
+      _showError('Pick future time!');
       return;
     }
 
@@ -170,10 +215,10 @@ class _EventWizardScreenState extends ConsumerState<EventWizardScreen> {
     try {
       await ref
           .read(eventWizardNotifierProvider.notifier)
-          .submitEvent(widget.groupId);
+          .submitEvent(widget.groupId, widget.existingEvent?.eventId);
 
       if (mounted) {
-        Navigator.pop(context);
+        Navigator.pop(context, true);
       }
     } catch (e) {
       _showError("Event creation error: $e");
@@ -202,9 +247,14 @@ class _EventWizardScreenState extends ConsumerState<EventWizardScreen> {
   @override
   Widget build(BuildContext context) {
     final wizardState = ref.watch(eventWizardNotifierProvider);
+    final bool isCreating = widget.existingEvent == null ? true : false;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Створення події')),
+      appBar: AppBar(
+        title: isCreating
+            ? const Text('Event creation')
+            : const Text("Event editing"),
+      ),
       body: PageView(
         controller: _pageController,
         physics: const NeverScrollableScrollPhysics(),
@@ -216,9 +266,9 @@ class _EventWizardScreenState extends ConsumerState<EventWizardScreen> {
               child: TextField(
                 controller: _titleController,
                 decoration: const InputDecoration(
-                  labelText: 'Назва події',
+                  labelText: 'Event name',
                   border: OutlineInputBorder(),
-                  hintText: 'Мінімум 4 символи...',
+                  hintText: 'At leat 4 symbols...',
                 ),
               ),
             ),
@@ -230,7 +280,7 @@ class _EventWizardScreenState extends ConsumerState<EventWizardScreen> {
                 controller: _descController,
                 maxLines: 4,
                 decoration: const InputDecoration(
-                  labelText: 'Опис події (опціонально)',
+                  labelText: 'Event description (optional)',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -244,15 +294,15 @@ class _EventWizardScreenState extends ConsumerState<EventWizardScreen> {
                 children: [
                   Text(
                     wizardState.time == null
-                        ? 'Час ще не обрано'
-                        : 'Обрано: ${wizardState.time!.toString().substring(0, 16)}',
+                        ? 'Time is not picked'
+                        : 'Picked: ${wizardState.time!.toString().substring(0, 16)}',
                     style: const TextStyle(fontSize: 18),
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton.icon(
                     onPressed: _pickDateTime,
                     icon: const Icon(Icons.calendar_month),
-                    label: const Text('Обрати дату та час'),
+                    label: const Text('Pick time'),
                   ),
                 ],
               ),
@@ -270,10 +320,13 @@ class _EventWizardScreenState extends ConsumerState<EventWizardScreen> {
             if (_currentPage == 1)
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Відміна'),
+                child: const Text('Cancel'),
               )
             else
-              TextButton(onPressed: _previousPage, child: const Text('Назад')),
+              TextButton(
+                onPressed: _previousPage,
+                child: const Text('Previous'),
+              ),
             // Перевіряємо чи дійшли до кінця (3 == 3)
             if (_currentPage == _totalPages)
               _isLoading
@@ -283,10 +336,12 @@ class _EventWizardScreenState extends ConsumerState<EventWizardScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                       ),
-                      child: const Text('Створити'),
+                      child: isCreating
+                          ? const Text('Create')
+                          : const Text('Edit'),
                     )
             else
-              ElevatedButton(onPressed: _nextPage, child: const Text('Далі')),
+              ElevatedButton(onPressed: _nextPage, child: const Text('Next')),
           ],
         ),
       ),

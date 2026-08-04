@@ -63,7 +63,7 @@ class InviteService {
           await inviteSnapshot.reference.update({
             FirebaseConstants.inviteStatus:
                 FirebaseConstants.inviteStatusPending,
-            FirebaseConstants.inviteTimestamp: DateTime.now(),
+            FirebaseConstants.inviteTimestamp: FieldValue.serverTimestamp(),
           });
           return;
         }
@@ -80,10 +80,14 @@ class InviteService {
       statusChangeTime: DateTime.now(),
     );
 
+    final Map<String, dynamic> inviteDataToSave = newInvite.toMap();
+    inviteDataToSave[FirebaseConstants.inviteTimestamp] =
+        FieldValue.serverTimestamp();
+
     await _db
         .collection(FirebaseConstants.invitesCollection)
         .doc(inviteId)
-        .set(newInvite.toMap());
+        .set(inviteDataToSave);
   }
 
   Future<void> acceptInvite({
@@ -136,7 +140,7 @@ class InviteService {
           .doc(inviteId);
       await inviteDocRef.update({
         FirebaseConstants.inviteStatus: FirebaseConstants.inviteStatusRejected,
-        FirebaseConstants.inviteTimestamp: DateTime.now(),
+        FirebaseConstants.inviteTimestamp: FieldValue.serverTimestamp(),
       });
     } catch (e) {
       rethrow;

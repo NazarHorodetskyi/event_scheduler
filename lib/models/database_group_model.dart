@@ -7,7 +7,7 @@ class DatabaseGroup {
   final String groupId;
   final List<String> members;
   final String recentMessage;
-  final DateTime? recentMessageTime;
+  final DateTime recentMessageTime;
   final String description;
 
   DatabaseGroup({
@@ -29,7 +29,7 @@ class DatabaseGroup {
       recentMessage: map[FirebaseConstants.recentMessage] ?? "",
       recentMessageTime: map[FirebaseConstants.recentMessageTime] != null
           ? (map[FirebaseConstants.recentMessageTime] as Timestamp).toDate()
-          : null,
+          : DateTime.now(),
       description: map[FirebaseConstants.groupDescription] ?? "",
     );
   }
@@ -41,7 +41,9 @@ class DatabaseGroup {
       FirebaseConstants.groupId: groupId,
       FirebaseConstants.groupMembers: members,
       FirebaseConstants.recentMessage: recentMessage,
-      FirebaseConstants.recentMessageTime: recentMessageTime,
+      FirebaseConstants.recentMessageTime: Timestamp.fromDate(
+        recentMessageTime,
+      ),
       FirebaseConstants.groupDescription: description,
     };
   }

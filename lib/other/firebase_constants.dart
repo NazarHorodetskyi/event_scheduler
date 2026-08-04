@@ -30,6 +30,7 @@ class FirebaseConstants {
   static const String eventDate = "date";
   static const String eventParticipants = "participants";
   static const String eventDecliners = "decliners";
+  static const String eventEditTime = "editTime";
 
   // invite fields
   static const String inviteId = "inviteId";

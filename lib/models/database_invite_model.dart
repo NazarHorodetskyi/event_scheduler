@@ -28,7 +28,7 @@ class DatabaseInvite {
       FirebaseConstants.inviteSenderId: senderId,
       FirebaseConstants.inviteReceiverId: receiverId,
       FirebaseConstants.inviteStatus: status,
-      FirebaseConstants.inviteTimestamp: statusChangeTime,
+      FirebaseConstants.inviteTimestamp: Timestamp.fromDate(statusChangeTime),
     };
   }
 

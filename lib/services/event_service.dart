@@ -44,6 +44,21 @@ class EventService {
     );
   }
 
+  Future<void> updateEvent({
+    required String eventId,
+    required Map<String, dynamic> newEventData,
+  }) async {
+    Map<String, dynamic> updates = {
+      ...newEventData,
+      FirebaseConstants.eventEditTime: FieldValue.serverTimestamp(),
+    };
+
+    await _db
+        .collection(FirebaseConstants.eventsCollection)
+        .doc(eventId)
+        .update(updates);
+  }
+
   Future<List<EventModel>> getAllEvents({required String groupId}) async {
     try {
       final snapshot = await _db

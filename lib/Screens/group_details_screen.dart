@@ -126,7 +126,9 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
                         itemCount: events.length,
                         itemBuilder: (context, index) {
                           final event = events[index];
-                          final isOwner = currentUser.uid == event.creatorId;
+                          final isOwner =
+                              ((currentUser.uid == event.creatorId) ||
+                              (currentUser.uid == group.ownerId));
                           return Column(
                             children: [
                               ListTile(
@@ -208,50 +210,118 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
 
                                     // Delete button
                                     if (isOwner)
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.delete,
-                                          color: Colors.red,
-                                        ),
-                                        onPressed: () async {
-                                          try {
-                                            final eventService = ref.read(
-                                              eventServiceProvider,
-                                            );
-                                            await eventService.deleteEvent(
-                                              eventId: event.eventId,
-                                              currentUserId: currentUser.uid,
-                                            );
+                                      Row(
+                                        children: [
+                                          // Edit button
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.edit,
+                                              color: Colors.orange,
+                                            ),
+                                            onPressed: () async {
+                                              try {
+                                                final result =
+                                                    await Navigator.of(
+                                                      context,
+                                                    ).push(
+                                                      MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            EventWizardScreen(
+                                                              groupId: widget
+                                                                  .groupId,
+                                                              existingEvent:
+                                                                  event,
+                                                            ),
+                                                      ),
+                                                    );
 
-                                            ref.invalidate(
-                                              groupEventsProvider(
-                                                event.groupId,
-                                              ),
-                                            );
-                                            if (context.mounted) {
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                const SnackBar(
-                                                  content: Text(
-                                                    'Event deleted!',
+                                                if (result == true) {
+                                                  ref.invalidate(
+                                                    groupEventsProvider(
+                                                      event.groupId,
+                                                    ),
+                                                  );
+                                                  if (context.mounted) {
+                                                    ScaffoldMessenger.of(
+                                                      context,
+                                                    ).showSnackBar(
+                                                      const SnackBar(
+                                                        content: Text(
+                                                          'Event edited!',
+                                                        ),
+                                                      ),
+                                                    );
+                                                  }
+                                                }
+                                              } catch (e) {
+                                                if (context.mounted) {
+                                                  ScaffoldMessenger.of(
+                                                    context,
+                                                  ).showSnackBar(
+                                                    SnackBar(
+                                                      content: Text(
+                                                        e.toString(),
+                                                      ),
+                                                      backgroundColor:
+                                                          Colors.red,
+                                                    ),
+                                                  );
+                                                }
+                                              }
+                                            },
+                                          ),
+
+                                          // Delete button
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.delete,
+                                              color: Colors.red,
+                                            ),
+                                            onPressed: () async {
+                                              try {
+                                                final eventService = ref.read(
+                                                  eventServiceProvider,
+                                                );
+                                                await eventService.deleteEvent(
+                                                  eventId: event.eventId,
+                                                  currentUserId:
+                                                      currentUser.uid,
+                                                );
+
+                                                ref.invalidate(
+                                                  groupEventsProvider(
+                                                    event.groupId,
                                                   ),
-                                                ),
-                                              );
-                                            }
-                                          } catch (e) {
-                                            if (context.mounted) {
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(e.toString()),
-                                                  backgroundColor: Colors.red,
-                                                ),
-                                              );
-                                            }
-                                          }
-                                        },
+                                                );
+                                                if (context.mounted) {
+                                                  ScaffoldMessenger.of(
+                                                    context,
+                                                  ).showSnackBar(
+                                                    const SnackBar(
+                                                      content: Text(
+                                                        'Event deleted!',
+                                                      ),
+                                                    ),
+                                                  );
+                                                }
+                                              } catch (e) {
+                                                if (context.mounted) {
+                                                  ScaffoldMessenger.of(
+                                                    context,
+                                                  ).showSnackBar(
+                                                    SnackBar(
+                                                      content: Text(
+                                                        e.toString(),
+                                                      ),
+                                                      backgroundColor:
+                                                          Colors.red,
+                                                    ),
+                                                  );
+                                                }
+                                              }
+                                            },
+                                          ),
+                                        ],
                                       ),
                                   ],
                                 ),
@@ -280,14 +350,35 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
                       heroTag: null,
                       child: Text("Create an event"),
                       onPressed: () async {
-                        await Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                EventWizardScreen(groupId: group.groupId),
-                          ),
-                        );
+                        try {
+                          final result = await Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  EventWizardScreen(groupId: group.groupId),
+                            ),
+                          );
 
-                        ref.invalidate(groupEventsProvider(group.groupId));
+                          if (result == true) {
+                            ref.invalidate(groupEventsProvider(group.groupId));
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Event created!'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            }
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(e.toString()),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        }
                       },
                     ),
                   ),

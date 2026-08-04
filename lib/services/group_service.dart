@@ -59,7 +59,11 @@ class GroupService {
     );
 
     WriteBatch batch = _db.batch();
-    batch.set(groupDocRef, newGroup.toMap());
+    Map<String, dynamic> groupData = newGroup.toMap();
+    groupData[FirebaseConstants.recentMessageTime] =
+        FieldValue.serverTimestamp();
+
+    batch.set(groupDocRef, groupData);
 
     DocumentReference userDocRef = _db
         .collection(FirebaseConstants.usersCollection)

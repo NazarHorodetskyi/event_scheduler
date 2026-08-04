@@ -10,6 +10,7 @@ class EventModel {
   final DateTime eventDate;
   final List<String> participants;
   final List<String> decliners;
+  final DateTime? editTime;
 
   EventModel({
     required this.eventId,
@@ -20,6 +21,7 @@ class EventModel {
     required this.eventDate,
     required this.participants,
     required this.decliners,
+    this.editTime,
   });
 
   factory EventModel.fromMap(Map<String, dynamic> map, String documentId) {
@@ -34,6 +36,10 @@ class EventModel {
         map[FirebaseConstants.eventParticipants] ?? [],
       ),
       decliners: List<String>.from(map[FirebaseConstants.eventDecliners] ?? []),
+
+      editTime: map[FirebaseConstants.eventEditTime] != null
+          ? (map[FirebaseConstants.eventEditTime] as Timestamp).toDate()
+          : null,
     );
   }
 
@@ -45,6 +51,11 @@ class EventModel {
       FirebaseConstants.eventDescription: description,
       FirebaseConstants.eventDate: Timestamp.fromDate(eventDate),
       FirebaseConstants.eventParticipants: participants,
+      FirebaseConstants.eventDecliners: decliners,
+
+      FirebaseConstants.eventEditTime: editTime != null
+          ? Timestamp.fromDate(editTime!)
+          : null,
     };
   }
 }
