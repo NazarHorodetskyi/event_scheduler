@@ -103,6 +103,10 @@ class InviteService {
           .get();
 
       if (!groupSnapshot.exists) {
+        await _db
+            .collection(FirebaseConstants.invitesCollection)
+            .doc(inviteId)
+            .delete();
         throw Exception("Group does not exist");
       }
 
@@ -133,8 +137,24 @@ class InviteService {
     }
   }
 
-  Future<void> rejectInvite({required String inviteId}) async {
+  Future<void> rejectInvite({
+    required String inviteId,
+    required String groupId,
+  }) async {
     try {
+      final groupSnapshot = await _db
+          .collection(FirebaseConstants.groupsCollection)
+          .doc(groupId)
+          .get();
+
+      if (!groupSnapshot.exists) {
+        await _db
+            .collection(FirebaseConstants.invitesCollection)
+            .doc(inviteId)
+            .delete();
+        throw Exception("Group does not exist");
+      }
+
       final inviteDocRef = _db
           .collection(FirebaseConstants.invitesCollection)
           .doc(inviteId);

@@ -129,6 +129,15 @@ class GroupService {
       for (var doc in groupEvents.docs) {
         batch.delete(doc.reference);
       }
+      // Delete invites to this group
+      final invitesSnapshot = await _db
+          .collection(FirebaseConstants.invitesCollection)
+          .where(FirebaseConstants.inviteGroupId, isEqualTo: groupId)
+          .get();
+
+      for (var doc in invitesSnapshot.docs) {
+        batch.delete(doc.reference);
+      }
     } else {
       batch.update(groupRef, {
         FirebaseConstants.groupMembers: FieldValue.arrayRemove([userId]),
@@ -139,8 +148,7 @@ class GroupService {
     // Remove user from any events
     for (var doc in groupEvents.docs) {
       final eventData = doc.data();
-      groupEventsIds.add(eventData[FirebaseConstants.eventId]);
-
+      groupEventsIds.add(eventData[FirebaseConstants.eventId] ?? doc.id);
       if (deleteGroup) {
         continue;
       }
@@ -150,12 +158,10 @@ class GroupService {
         FirebaseConstants.eventParticipants: FieldValue.arrayRemove([userId]),
         FirebaseConstants.eventDecliners: FieldValue.arrayRemove([userId]),
       };
-
       // If user is owner
-      if (eventData[FirebaseConstants.eventCreatorId] == userId) {
-        eventUpdates[FirebaseConstants.eventCreatorId] = ownerId;
+      if (eventData[FirebaseConstants.eventOwnerId] == userId) {
+        eventUpdates[FirebaseConstants.eventOwnerId] = ownerId;
       }
-
       batch.update(doc.reference, eventUpdates);
     }
 
@@ -209,5 +215,25 @@ class GroupService {
     } catch (e) {
       return [];
     }
+  }
+
+  Future<void> changeGroupName({
+    required String currentUserId,
+    required String groupOwnerId,
+    required String groupId,
+    required String newName,
+  }) async {
+    if (currentUserId != groupOwnerId) {
+      throw Exception("You do not have enough rights for this information");
+    }
+
+    if (newName.length < 5) {
+      throw Exception("Name should be at least 5 symbols long");
+    }
+
+    return _db
+        .collection(FirebaseConstants.groupsCollection)
+        .doc(groupId)
+        .update({FirebaseConstants.groupName: newName});
   }
 }

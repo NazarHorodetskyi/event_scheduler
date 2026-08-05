@@ -40,7 +40,10 @@ class _MessageScreenState extends ConsumerState<MessageScreen> {
                         try {
                           await ref
                               .read(inviteServiceProvider)
-                              .rejectInvite(inviteId: invite.inviteId);
+                              .rejectInvite(
+                                inviteId: invite.inviteId,
+                                groupId: invite.groupId,
+                              );
                         } catch (e) {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(

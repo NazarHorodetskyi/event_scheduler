@@ -3,6 +3,7 @@ import 'package:event_scheduler/providers/event_service_provider.dart';
 import 'package:event_scheduler/providers/group_service_provider.dart';
 import 'package:event_scheduler/screens/add_participants_screen.dart';
 import 'package:event_scheduler/screens/event_wizard_screen.dart';
+import 'package:event_scheduler/screens/group_settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -37,6 +38,10 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
       groupParticipantsProvider(widget.groupId),
     );
 
+    bool isGroupOwner = currentUser.uid == groupData.value?.ownerId
+        ? true
+        : false;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -53,15 +58,46 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
               physics: AlwaysScrollableScrollPhysics(),
               child: Column(
                 children: [
-                  FloatingActionButton(
-                    heroTag: null,
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => AddingScreen(group: group),
+                  Row(
+                    children: [
+                      FloatingActionButton(
+                        heroTag: null,
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => AddingScreen(group: group),
+                            ),
+                          );
+                        },
+                      ),
+                      // Group settings
+                      if (isGroupOwner) ...{
+                        IconButton(
+                          onPressed: () async {
+                            final result = await Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    GroupSettingsScreen(group: group),
+                              ),
+                            );
+
+                            if (result == true) {
+                              ref.invalidate(groupDetailsProvider);
+
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text("Changed!"),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                          icon: Icon(Icons.settings),
                         ),
-                      );
-                    },
+                      },
+                    ],
                   ),
                   const Padding(
                     padding: EdgeInsets.only(
@@ -126,7 +162,7 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
                         itemCount: events.length,
                         itemBuilder: (context, index) {
                           final event = events[index];
-                          final isOwner =
+                          final isEventOwner =
                               ((currentUser.uid == event.creatorId) ||
                               (currentUser.uid == group.ownerId));
                           return Column(
@@ -209,7 +245,7 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
                                     },
 
                                     // Delete button
-                                    if (isOwner)
+                                    if (isEventOwner)
                                       Row(
                                         children: [
                                           // Edit button
@@ -231,6 +267,8 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
                                                                   .groupId,
                                                               existingEvent:
                                                                   event,
+                                                              groupOwnerId:
+                                                                  group.ownerId,
                                                             ),
                                                       ),
                                                     );
@@ -283,6 +321,8 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
                                                   eventServiceProvider,
                                                 );
                                                 await eventService.deleteEvent(
+                                                  eventOwnerId: event.creatorId,
+                                                  groupOwnerId: group.ownerId,
                                                   eventId: event.eventId,
                                                   currentUserId:
                                                       currentUser.uid,

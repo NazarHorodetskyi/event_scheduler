@@ -45,9 +45,16 @@ class EventService {
   }
 
   Future<void> updateEvent({
+    required String currentUserId,
+    required String groupOwnerId,
+    required String eventOwnerId,
     required String eventId,
     required Map<String, dynamic> newEventData,
   }) async {
+    if (currentUserId != groupOwnerId && currentUserId != eventOwnerId) {
+      throw Exception("You do not have enough rights for this operation");
+    }
+
     Map<String, dynamic> updates = {
       ...newEventData,
       FirebaseConstants.eventEditTime: FieldValue.serverTimestamp(),
@@ -75,10 +82,16 @@ class EventService {
   }
 
   Future<void> deleteEvent({
-    required String eventId,
     required String currentUserId,
+    required String eventOwnerId,
+    required String groupOwnerId,
+    required String eventId,
   }) async {
     try {
+      if (currentUserId != eventOwnerId && currentUserId != groupOwnerId) {
+        throw Exception("Only owner can delete an event!");
+      }
+
       final eventRef = _db
           .collection(FirebaseConstants.eventsCollection)
           .doc(eventId);
@@ -86,13 +99,6 @@ class EventService {
 
       if (!eventDoc.exists) {
         throw Exception("Event not found");
-      }
-
-      final eventData = eventDoc.data()!;
-      final String ownerId = eventData[FirebaseConstants.eventCreatorId];
-
-      if (ownerId != currentUserId) {
-        throw Exception("Only owner can delete an event!");
       }
 
       WriteBatch batch = _db.batch();

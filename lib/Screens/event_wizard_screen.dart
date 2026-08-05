@@ -2,8 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:event_scheduler/models/database_event_model.dart';
 import 'package:event_scheduler/other/exceptions.dart';
 import 'package:event_scheduler/other/firebase_constants.dart';
+import 'package:event_scheduler/providers/auth_service_provider.dart';
 import 'package:event_scheduler/providers/event_service_provider.dart';
-import 'package:event_scheduler/providers/firebase_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -43,16 +43,21 @@ class EventWizardNotifier extends Notifier<EventWizard> {
     state = state.copyWith(description: newDescription);
   }
 
-  Future<void> submitEvent(String groupId, String? eventId) async {
+  Future<void> submitEvent({
+    required String groupId,
+    String? eventId,
+    String? eventOwnerId,
+    String? groupOwnerId,
+  }) async {
     try {
       final eventService = ref.read(eventServiceProvider);
-      final firebaseAuth = ref.read(firebaseAuthProvider);
+      final authService = ref.read(authServiceProvider);
 
-      final currentUser = firebaseAuth.currentUser;
+      final currentUser = authService.currentUser;
       if (currentUser == null) throw UserNotAuthenticatedException();
 
       // Event editing block
-      if (eventId != null) {
+      if (eventId != null && eventOwnerId != null && groupOwnerId != null) {
         final newEventData = {
           FirebaseConstants.eventTitle: state.title,
           FirebaseConstants.eventDescription: state.description,
@@ -61,6 +66,9 @@ class EventWizardNotifier extends Notifier<EventWizard> {
         };
 
         await eventService.updateEvent(
+          currentUserId: currentUser.uid,
+          eventOwnerId: eventOwnerId,
+          groupOwnerId: groupOwnerId,
           eventId: eventId,
           newEventData: newEventData,
         );
@@ -71,7 +79,7 @@ class EventWizardNotifier extends Notifier<EventWizard> {
       // Default creating block
       await eventService.createEvent(
         groupId: groupId,
-        creatorId: firebaseAuth.currentUser!.uid,
+        creatorId: currentUser.uid,
         title: state.title,
         description: state.description,
         eventDate: state.time!,
@@ -90,14 +98,21 @@ final eventWizardNotifierProvider =
       () => EventWizardNotifier(),
     );
 
+// if event and group owner id provided - update
 class EventWizardScreen extends ConsumerStatefulWidget {
   const EventWizardScreen({
     super.key,
     required this.groupId,
     this.existingEvent,
+    this.groupOwnerId,
   });
-  final String groupId;
+
+  final String groupId; // required data
+
+  // optional data for update
   final EventModel? existingEvent;
+  final String? groupOwnerId;
+
   @override
   ConsumerState<EventWizardScreen> createState() => _EventWizardScreenState();
 }
@@ -215,7 +230,12 @@ class _EventWizardScreenState extends ConsumerState<EventWizardScreen> {
     try {
       await ref
           .read(eventWizardNotifierProvider.notifier)
-          .submitEvent(widget.groupId, widget.existingEvent?.eventId);
+          .submitEvent(
+            groupId: widget.groupId,
+            eventId: widget.existingEvent?.eventId,
+            eventOwnerId: widget.existingEvent?.creatorId,
+            groupOwnerId: widget.groupOwnerId,
+          );
 
       if (mounted) {
         Navigator.pop(context, true);

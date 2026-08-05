@@ -24,7 +24,7 @@ class FirebaseConstants {
   // event fields
   static const String eventId = "eventId";
   static const String eventGroupId = "eventGroupId";
-  static const String eventCreatorId = "creatorId";
+  static const String eventOwnerId = "creatorId";
   static const String eventTitle = "title";
   static const String eventDescription = "description";
   static const String eventDate = "date";

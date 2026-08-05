@@ -28,7 +28,7 @@ class EventModel {
     return EventModel(
       eventId: documentId,
       groupId: map[FirebaseConstants.eventGroupId] ?? '',
-      creatorId: map[FirebaseConstants.eventCreatorId] ?? '',
+      creatorId: map[FirebaseConstants.eventOwnerId] ?? '',
       title: map[FirebaseConstants.eventTitle] ?? '',
       description: map[FirebaseConstants.eventDescription] ?? '',
       eventDate: (map[FirebaseConstants.eventDate] as Timestamp).toDate(),
@@ -45,8 +45,9 @@ class EventModel {
 
   Map<String, dynamic> toMap() {
     return {
+      FirebaseConstants.eventId: eventId,
       FirebaseConstants.eventGroupId: groupId,
-      FirebaseConstants.eventCreatorId: creatorId,
+      FirebaseConstants.eventOwnerId: creatorId,
       FirebaseConstants.eventTitle: title,
       FirebaseConstants.eventDescription: description,
       FirebaseConstants.eventDate: Timestamp.fromDate(eventDate),
