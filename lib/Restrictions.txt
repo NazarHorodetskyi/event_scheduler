@@ -1,0 +1,2 @@
+Nickname:
+    - at least 5 long

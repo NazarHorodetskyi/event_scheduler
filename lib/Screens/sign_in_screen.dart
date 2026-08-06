@@ -1,6 +1,5 @@
+import 'package:event_scheduler/Screens/register_screen.dart';
 import 'package:event_scheduler/providers/auth_service_provider.dart';
-import 'package:event_scheduler/screens/main_screen.dart';
-import 'package:event_scheduler/screens/register_screen.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -37,13 +36,6 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             email: emailController.text.trim(),
             password: passwordController.text.trim(),
           );
-
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => MainScreen()),
-        );
-      }
     } catch (e) {
       if (mounted) {
         setState(() {

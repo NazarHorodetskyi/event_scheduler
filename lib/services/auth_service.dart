@@ -153,8 +153,36 @@ class AuthService {
     return await _firebaseAuth.sendPasswordResetEmail(email: email);
   }
 
-  Future<void> updateUsername({required String username}) async {
-    return await currentUser!.updateDisplayName(username);
+  Future<void> updateNickname({
+    required String currentNickname,
+    required String newNickname,
+  }) async {
+    final user = currentUser;
+
+    if (user == null) {
+      throw Exception("Auth error");
+    }
+
+    final trimmedNickname = newNickname.trim();
+    if (trimmedNickname.length < 5) {
+      throw Exception("Nickname should be at least 5 symbols long");
+    }
+
+    if (trimmedNickname == currentNickname) {
+      return;
+    }
+
+    final bool isAvailable = await isNicknameAvaible(trimmedNickname);
+    if (!isAvailable) {
+      throw Exception("This nickname already taken!");
+    }
+
+    await _db
+        .collection(FirebaseConstants.usersCollection)
+        .doc(user.uid)
+        .update({FirebaseConstants.nickname: trimmedNickname});
+
+    return;
   }
 
   Future<void> deleteUser({required String password}) async {
