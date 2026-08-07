@@ -4,6 +4,7 @@ import 'package:event_scheduler/other/firebase_constants.dart';
 class EventModel {
   final String eventId;
   final String groupId;
+  final String groupName;
   final String creatorId;
   final String title;
   final String description;
@@ -21,6 +22,7 @@ class EventModel {
     required this.eventDate,
     required this.participants,
     required this.decliners,
+    required this.groupName,
     this.editTime,
   });
 
@@ -28,6 +30,7 @@ class EventModel {
     return EventModel(
       eventId: documentId,
       groupId: map[FirebaseConstants.eventGroupId] ?? '',
+      groupName: map[FirebaseConstants.eventGroupName] ?? "",
       creatorId: map[FirebaseConstants.eventOwnerId] ?? '',
       title: map[FirebaseConstants.eventTitle] ?? '',
       description: map[FirebaseConstants.eventDescription] ?? '',
@@ -47,6 +50,7 @@ class EventModel {
     return {
       FirebaseConstants.eventId: eventId,
       FirebaseConstants.eventGroupId: groupId,
+      FirebaseConstants.eventGroupName: groupName,
       FirebaseConstants.eventOwnerId: creatorId,
       FirebaseConstants.eventTitle: title,
       FirebaseConstants.eventDescription: description,

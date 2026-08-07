@@ -10,7 +10,6 @@ class FirebaseConstants {
   static const String userGroups = "groupIds";
   static const String email = "email";
   static const String nickname = "nickname";
-  static const String acceptedEvents = 'acceptedEvents';
 
   // group fields
   static const String groupDescription = "description";
@@ -31,6 +30,7 @@ class FirebaseConstants {
   static const String eventParticipants = "participants";
   static const String eventDecliners = "decliners";
   static const String eventEditTime = "editTime";
+  static const String eventGroupName = "eventGroupName";
 
   // invite fields
   static const String inviteId = "inviteId";

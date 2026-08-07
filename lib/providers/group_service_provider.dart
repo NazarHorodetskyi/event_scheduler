@@ -1,6 +1,8 @@
 import 'package:event_scheduler/models/database_group_model.dart';
+import 'package:event_scheduler/other/firebase_constants.dart';
 import 'package:event_scheduler/providers/auth_service_provider.dart';
 import 'package:event_scheduler/providers/firebase_providers.dart';
+import 'package:event_scheduler/providers/user_profie_provider.dart';
 import 'package:event_scheduler/services/group_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,13 +12,23 @@ final groupServiceProvider = Provider<GroupService>((ref) {
 });
 
 final userGroupsProvider = FutureProvider<List<DatabaseGroup>>((ref) async {
-  final groupService = ref.watch(groupServiceProvider);
-  final auth = ref.watch(firebaseAuthProvider);
+  final groupIds = ref.watch(
+    currentUserDataProvider.select((user) => user.value?.groupIds ?? []),
+  );
 
-  final userId = auth.currentUser?.uid;
-  if (userId == null) return [];
+  if (groupIds.isEmpty) {
+    return [];
+  }
 
-  return groupService.getAllGroups(userId);
+  final firestore = ref.watch(fireStoreProvider);
+  final groupsSnapshot = await firestore
+      .collection(FirebaseConstants.groupsCollection)
+      .where(FirebaseConstants.groupId, whereIn: groupIds)
+      .get();
+
+  return groupsSnapshot.docs
+      .map((doc) => DatabaseGroup.fromMap(doc.data()))
+      .toList();
 });
 
 final groupParticipantsProvider = FutureProvider.family<List<String>, String>((

@@ -9,23 +9,6 @@ class GroupService {
 
   final FirebaseFirestore _db;
 
-  Future<List<DatabaseGroup>> getAllGroups(String userId) async {
-    try {
-      final snapshot = await _db
-          .collection(FirebaseConstants.groupsCollection)
-          .where(FirebaseConstants.groupMembers, arrayContains: userId)
-          .get();
-
-      List<DatabaseGroup> groups = snapshot.docs.map((doc) {
-        return DatabaseGroup.fromMap(doc.data());
-      }).toList();
-
-      return groups;
-    } catch (e) {
-      return [];
-    }
-  }
-
   Future<DatabaseGroup> getGroupById({required String groupId}) async {
     try {
       final snapshot = await _db
@@ -165,15 +148,6 @@ class GroupService {
       batch.update(doc.reference, eventUpdates);
     }
 
-    // Remove from accepted events
-    if (groupEventsIds.isNotEmpty) {
-      batch.update(userRef, {
-        FirebaseConstants.acceptedEvents: FieldValue.arrayRemove(
-          groupEventsIds,
-        ),
-      });
-    }
-
     await batch.commit().timeout(
       const Duration(seconds: 10),
       onTimeout: () => throw ConnectionErrorException(),
@@ -223,17 +197,45 @@ class GroupService {
     required String groupId,
     required String newName,
   }) async {
+    final trimmedName = newName.trim();
+
     if (currentUserId != groupOwnerId) {
       throw Exception("You do not have enough rights for this information");
     }
 
-    if (newName.length < 5) {
+    if (trimmedName.length < 5) {
       throw Exception("Name should be at least 5 symbols long");
     }
 
-    return _db
+    final groupSnapshot = await _db
         .collection(FirebaseConstants.groupsCollection)
         .doc(groupId)
-        .update({FirebaseConstants.groupName: newName});
+        .get();
+
+    if (!groupSnapshot.exists) {
+      throw Exception("Group doesnt exist");
+    }
+
+    final groupEvents = await _db
+        .collection(FirebaseConstants.eventsCollection)
+        .where(FirebaseConstants.eventGroupId, isEqualTo: groupId)
+        .get();
+
+    WriteBatch batch = _db.batch();
+    // New name for group
+    batch.update(groupSnapshot.reference, {
+      FirebaseConstants.groupName: newName,
+    });
+
+    // New groupName for events in group
+    for (var doc in groupEvents.docs) {
+      if (doc.exists) {
+        batch.update(doc.reference, {
+          FirebaseConstants.eventGroupName: trimmedName,
+        });
+      }
+    }
+
+    await batch.commit();
   }
 }

@@ -265,6 +265,8 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
                                                             EventWizardScreen(
                                                               groupId: widget
                                                                   .groupId,
+                                                              groupName:
+                                                                  group.name,
                                                               existingEvent:
                                                                   event,
                                                               groupOwnerId:
@@ -393,8 +395,10 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
                         try {
                           final result = await Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  EventWizardScreen(groupId: group.groupId),
+                              builder: (context) => EventWizardScreen(
+                                groupId: group.groupId,
+                                groupName: group.name,
+                              ),
                             ),
                           );
 

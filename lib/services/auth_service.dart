@@ -118,7 +118,6 @@ class AuthService {
         email: email,
         nickname: nickname,
         groupIds: [],
-        acceptedEvents: [],
       );
 
       await _db
@@ -186,6 +185,7 @@ class AuthService {
   }
 
   Future<void> deleteUser({required String password}) async {
+    // TODO refactor
     try {
       final user = currentUser;
       if (user == null) return;

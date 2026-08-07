@@ -9,6 +9,7 @@ class EventService {
 
   Future<void> createEvent({
     required String groupId,
+    required String groupName,
     required String creatorId,
     required String title,
     required String description,
@@ -21,6 +22,7 @@ class EventService {
     EventModel newEvent = EventModel(
       eventId: eventDocRef.id,
       groupId: groupId,
+      groupName: groupName,
       creatorId: creatorId,
       title: title,
       description: description,
@@ -29,19 +31,12 @@ class EventService {
       decliners: [],
     );
 
-    WriteBatch batch = _db.batch();
-    batch.set(eventDocRef, newEvent.toMap());
-    DocumentReference userDocRef = _db
-        .collection(FirebaseConstants.usersCollection)
-        .doc(creatorId);
-    batch.update(userDocRef, {
-      FirebaseConstants.acceptedEvents: FieldValue.arrayUnion([eventDocRef.id]),
-    });
-
-    await batch.commit().timeout(
-      const Duration(seconds: 10),
-      onTimeout: () => throw ConnectionErrorException(),
-    );
+    await eventDocRef
+        .set(newEvent.toMap())
+        .timeout(
+          Duration(seconds: 10),
+          onTimeout: () => throw ConnectionErrorException(),
+        );
   }
 
   Future<void> updateEvent({
@@ -101,71 +96,31 @@ class EventService {
         throw Exception("Event not found");
       }
 
-      WriteBatch batch = _db.batch();
-      batch.delete(eventRef); //delete event document
-
-      final participantsQuery = await _db
-          .collection(FirebaseConstants.usersCollection)
-          .where(FirebaseConstants.acceptedEvents, arrayContains: eventId)
-          .get();
-
-      for (var userDoc in participantsQuery.docs) {
-        batch.update(userDoc.reference, {
-          FirebaseConstants.acceptedEvents: FieldValue.arrayRemove([eventId]),
-        });
-      }
-
-      await batch.commit();
+      await eventRef.delete();
     } catch (e) {
       rethrow;
     }
   }
 
   Future<void> agreeToEvent(String userId, String eventId) async {
-    final userDocRef = _db
-        .collection(FirebaseConstants.usersCollection)
-        .doc(userId);
     final eventDocRef = _db
         .collection(FirebaseConstants.eventsCollection)
         .doc(eventId);
 
-    WriteBatch batch = _db.batch();
-
-    // Add event to user
-    batch.update(userDocRef, {
-      FirebaseConstants.acceptedEvents: FieldValue.arrayUnion([eventId]),
-    });
-
-    // Add user to event participants and remove from decliners
-    batch.update(eventDocRef, {
+    await eventDocRef.update({
       FirebaseConstants.eventParticipants: FieldValue.arrayUnion([userId]),
       FirebaseConstants.eventDecliners: FieldValue.arrayRemove([userId]),
     });
-
-    await batch.commit();
   }
 
   Future<void> declineTheEvent(String userId, String eventId) async {
-    final userDocRef = _db
-        .collection(FirebaseConstants.usersCollection)
-        .doc(userId);
     final eventDocRef = _db
         .collection(FirebaseConstants.eventsCollection)
         .doc(eventId);
 
-    WriteBatch batch = _db.batch();
-
-    // Remove event from user
-    batch.update(userDocRef, {
-      FirebaseConstants.acceptedEvents: FieldValue.arrayRemove([eventId]),
-    });
-
-    // Add user to decliners and remove from participants
-    batch.update(eventDocRef, {
+    await eventDocRef.update({
       FirebaseConstants.eventParticipants: FieldValue.arrayRemove([userId]),
       FirebaseConstants.eventDecliners: FieldValue.arrayUnion([userId]),
     });
-
-    await batch.commit();
   }
 }

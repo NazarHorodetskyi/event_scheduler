@@ -4,7 +4,7 @@ import 'package:event_scheduler/providers/auth_service_provider.dart';
 import 'package:event_scheduler/providers/firebase_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final currentUserProfileProvider = StreamProvider<DatabaseUser?>((ref) {
+final currentUserDataProvider = StreamProvider<DatabaseUser>((ref) {
   final user = ref.watch(authServiceProvider).currentUser;
 
   if (user == null) {
@@ -18,10 +18,19 @@ final currentUserProfileProvider = StreamProvider<DatabaseUser?>((ref) {
       .snapshots();
 
   return userSnapshots.map((snapshot) {
-    if (snapshot.exists && snapshot.data() != null) {
-      return DatabaseUser.fromMap(snapshot.data()!);
-    }
-
-    return null;
+    return DatabaseUser.fromMap(snapshot.data()!);
   });
+});
+
+final userProfileProvider = Provider<({String nickname, String email})>((ref) {
+  final profileData = ref.watch(
+    currentUserDataProvider.select(
+      (user) => (
+        nickname: user.value?.nickname ?? "Loading",
+        email: user.value?.email ?? "Unknown",
+      ),
+    ),
+  );
+
+  return profileData;
 });

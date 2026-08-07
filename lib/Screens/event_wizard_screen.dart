@@ -45,6 +45,7 @@ class EventWizardNotifier extends Notifier<EventWizard> {
 
   Future<void> submitEvent({
     required String groupId,
+    required String groupName,
     String? eventId,
     String? eventOwnerId,
     String? groupOwnerId,
@@ -79,6 +80,7 @@ class EventWizardNotifier extends Notifier<EventWizard> {
       // Default creating block
       await eventService.createEvent(
         groupId: groupId,
+        groupName: groupName,
         creatorId: currentUser.uid,
         title: state.title,
         description: state.description,
@@ -103,12 +105,13 @@ class EventWizardScreen extends ConsumerStatefulWidget {
   const EventWizardScreen({
     super.key,
     required this.groupId,
+    required this.groupName,
     this.existingEvent,
     this.groupOwnerId,
   });
 
   final String groupId; // required data
-
+  final String groupName;
   // optional data for update
   final EventModel? existingEvent;
   final String? groupOwnerId;
@@ -232,6 +235,7 @@ class _EventWizardScreenState extends ConsumerState<EventWizardScreen> {
           .read(eventWizardNotifierProvider.notifier)
           .submitEvent(
             groupId: widget.groupId,
+            groupName: widget.groupName,
             eventId: widget.existingEvent?.eventId,
             eventOwnerId: widget.existingEvent?.creatorId,
             groupOwnerId: widget.groupOwnerId,
