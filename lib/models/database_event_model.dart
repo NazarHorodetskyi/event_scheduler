@@ -26,9 +26,9 @@ class EventModel {
     this.editTime,
   });
 
-  factory EventModel.fromMap(Map<String, dynamic> map, String documentId) {
+  factory EventModel.fromMap(Map<String, dynamic> map) {
     return EventModel(
-      eventId: documentId,
+      eventId: map[FirebaseConstants.eventId],
       groupId: map[FirebaseConstants.eventGroupId] ?? '',
       groupName: map[FirebaseConstants.eventGroupName] ?? "",
       creatorId: map[FirebaseConstants.eventOwnerId] ?? '',

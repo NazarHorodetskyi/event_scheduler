@@ -1,5 +1,6 @@
 import 'package:event_scheduler/screens/groups_screen.dart';
 import 'package:event_scheduler/screens/profile_screen.dart';
+import 'package:event_scheduler/screens/user_events_screen.dart';
 import 'package:flutter/material.dart';
 
 class MainScreen extends StatefulWidget {
@@ -12,7 +13,11 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = [const GroupsScreen(), const ProfileScreen()];
+  final List<Widget> _screens = [
+    const GroupsScreen(),
+    const UserEventsScreen(),
+    const ProfileScreen(),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +32,7 @@ class _MainScreenState extends State<MainScreen> {
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.group), label: 'Groups'),
+          BottomNavigationBarItem(icon: Icon(Icons.event), label: "Events"),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),

@@ -1,5 +1,6 @@
 import 'package:event_scheduler/other/exceptions.dart';
 import 'package:event_scheduler/providers/auth_service_provider.dart';
+import 'package:event_scheduler/providers/event_service_provider.dart';
 import 'package:event_scheduler/providers/firebase_providers.dart';
 import 'package:event_scheduler/providers/group_service_provider.dart';
 import 'package:event_scheduler/providers/invite_service_provider.dart';
@@ -206,9 +207,10 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
                   final groupService = ref.read(groupServiceProvider);
 
                   await groupService.leaveGroup(groupId);
-                  if (context.mounted) Navigator.pop(dialogContext);
+                  if (dialogContext.mounted) Navigator.pop(dialogContext);
 
                   ref.invalidate(userGroupsProvider);
+                  ref.invalidate(userEventsProvider);
 
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(

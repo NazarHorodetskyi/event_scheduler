@@ -61,7 +61,7 @@ class EventService {
         .update(updates);
   }
 
-  Future<List<EventModel>> getAllEvents({required String groupId}) async {
+  Future<List<EventModel>> getGroupEvents({required String groupId}) async {
     try {
       final snapshot = await _db
           .collection(FirebaseConstants.eventsCollection)
@@ -69,11 +69,25 @@ class EventService {
           .get();
 
       return snapshot.docs
-          .map((doc) => EventModel.fromMap(doc.data(), doc.id))
+          .map((doc) => EventModel.fromMap(doc.data()))
           .toList();
     } catch (e) {
       rethrow;
     }
+  }
+
+  Future<List<EventModel>> getUserEvents(List<String> groupsId) async {
+    if (groupsId.isEmpty) {
+      return [];
+    }
+
+    final snapshot = await _db
+        .collection(FirebaseConstants.eventsCollection)
+        .where(FirebaseConstants.eventGroupId, whereIn: groupsId)
+        .orderBy(FirebaseConstants.eventDate)
+        .get();
+
+    return snapshot.docs.map((doc) => EventModel.fromMap(doc.data())).toList();
   }
 
   Future<void> deleteEvent({

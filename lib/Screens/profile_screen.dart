@@ -1,4 +1,5 @@
 import 'package:event_scheduler/providers/auth_service_provider.dart';
+import 'package:event_scheduler/providers/group_service_provider.dart';
 import 'package:event_scheduler/providers/user_profie_provider.dart';
 import 'package:event_scheduler/screens/profile_editing_screen.dart';
 import 'package:flutter/material.dart';
@@ -32,6 +33,8 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                   ),
                 );
+
+                if (result == true) ref.invalidate(groupParticipantsProvider);
 
                 if (result == true && context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(

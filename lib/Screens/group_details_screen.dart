@@ -83,6 +83,8 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
 
                             if (result == true) {
                               ref.invalidate(groupDetailsProvider);
+                              ref.invalidate(userEventsProvider);
+                              ref.invalidate(userGroupsProvider);
 
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -197,6 +199,7 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
                                             ref.invalidate(
                                               eventServiceProvider,
                                             );
+                                            ref.invalidate(userEventsProvider);
                                           } catch (e) {
                                             if (context.mounted) {
                                               ScaffoldMessenger.of(
@@ -229,6 +232,7 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
                                             ref.invalidate(
                                               eventServiceProvider,
                                             );
+                                            ref.invalidate(userEventsProvider);
                                           } catch (e) {
                                             if (context.mounted) {
                                               ScaffoldMessenger.of(
@@ -280,6 +284,9 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
                                                     groupEventsProvider(
                                                       event.groupId,
                                                     ),
+                                                  );
+                                                  ref.invalidate(
+                                                    userEventsProvider,
                                                   );
                                                   if (context.mounted) {
                                                     ScaffoldMessenger.of(
@@ -334,6 +341,9 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
                                                   groupEventsProvider(
                                                     event.groupId,
                                                   ),
+                                                );
+                                                ref.invalidate(
+                                                  userEventsProvider,
                                                 );
                                                 if (context.mounted) {
                                                   ScaffoldMessenger.of(
@@ -404,6 +414,7 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
 
                           if (result == true) {
                             ref.invalidate(groupEventsProvider(group.groupId));
+                            ref.invalidate(userEventsProvider);
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
