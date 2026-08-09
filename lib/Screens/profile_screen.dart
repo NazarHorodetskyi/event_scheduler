@@ -51,14 +51,125 @@ class ProfileScreen extends ConsumerWidget {
             ),
           ),
           // Log out button
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ElevatedButton(
+              onPressed: () async {
+                await ref.read(authServiceProvider).signOut();
+              },
+              child: Text("Log out"),
+            ),
+          ),
           ElevatedButton(
-            onPressed: () async {
-              await ref.read(authServiceProvider).signOut();
-            },
-            child: Text("Log out"),
+            style: ElevatedButton.styleFrom(foregroundColor: Colors.red),
+            onPressed: () => _showDeleteAccountDialog(context, ref),
+            child: const Text("Delete account"),
           ),
         ],
       ),
     );
   }
+}
+
+Future<void> _showDeleteAccountDialog(
+  BuildContext context,
+  WidgetRef ref,
+) async {
+  final passwordController = TextEditingController();
+  bool isLoading = false;
+
+  await showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext dialogContext) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: const Text(
+              'Delete account',
+              style: TextStyle(color: Colors.red),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Are you sure? All the data will be lost!'),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: passwordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Input your password',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              // CANCEL button
+              TextButton(
+                onPressed: isLoading
+                    ? null
+                    : () => Navigator.pop(dialogContext),
+                child: const Text('Cancel'),
+              ),
+              // DELETE button
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: isLoading
+                    ? null
+                    : () async {
+                        final password = passwordController.text.trim();
+                        if (password.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Enter your password'),
+                            ),
+                          );
+                          return;
+                        }
+
+                        setState(() => isLoading = true);
+
+                        try {
+                          await ref
+                              .read(authServiceProvider)
+                              .deleteUser(password: password);
+
+                          if (context.mounted) {
+                            Navigator.pop(dialogContext);
+                          }
+                        } catch (e) {
+                          setState(() => isLoading = false);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Wrong password or network error',
+                                ),
+                              ),
+                            );
+                          }
+                        }
+                      },
+                child: isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text('Delete'),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
 }

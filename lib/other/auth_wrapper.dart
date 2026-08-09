@@ -1,6 +1,6 @@
 import 'package:event_scheduler/providers/firebase_providers.dart';
+import 'package:event_scheduler/screens/auth_screen.dart';
 import 'package:event_scheduler/screens/main_screen.dart';
-import 'package:event_scheduler/screens/sign_in_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -16,7 +16,7 @@ class AuthWrapper extends ConsumerWidget {
         if (user != null) {
           return const MainScreen();
         }
-        return const SignInScreen();
+        return const AuthScreen();
       },
       error: (e, trace) => Scaffold(body: Center(child: Text('Auth error $e'))),
       loading: () =>

@@ -1,12 +1,12 @@
-import 'package:event_scheduler/Screens/register_screen.dart';
 import 'package:event_scheduler/providers/auth_service_provider.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SignInScreen extends ConsumerStatefulWidget {
-  const SignInScreen({super.key, this.initialEmail});
+  const SignInScreen({super.key, required this.onToggle, this.initialEmail});
   final String? initialEmail;
+  final VoidCallback onToggle;
   @override
   ConsumerState<SignInScreen> createState() => _SignInScreenState();
 }
@@ -77,6 +77,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             ),
             SizedBox(height: 15),
             TextField(
+              obscureText: true,
               controller: passwordController,
               decoration: InputDecoration(
                 hint: Text("Password"),
@@ -102,12 +103,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                     style: TextStyle(color: Colors.blue[400]),
                     recognizer: TapGestureRecognizer()
                       ..onTap = () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const RegisterScreen(),
-                          ),
-                        );
+                        widget.onToggle();
                       },
                   ),
                 ],
