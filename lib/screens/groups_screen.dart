@@ -1,7 +1,6 @@
 import 'package:event_scheduler/other/exceptions.dart';
 import 'package:event_scheduler/providers/auth_service_provider.dart';
 import 'package:event_scheduler/providers/event_service_provider.dart';
-import 'package:event_scheduler/providers/firebase_providers.dart';
 import 'package:event_scheduler/providers/group_service_provider.dart';
 import 'package:event_scheduler/providers/invite_service_provider.dart';
 import 'package:event_scheduler/screens/group_details_screen.dart';
@@ -140,7 +139,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
 
                 try {
                   final groupService = ref.read(groupServiceProvider);
-                  final authService = ref.read(firebaseAuthProvider);
+                  final authService = ref.read(authServiceProvider);
 
                   final currentAuthUser = authService.currentUser;
                   if (currentAuthUser == null) {

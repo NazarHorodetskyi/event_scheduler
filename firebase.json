@@ -1,23 +1,41 @@
 {
-    "flutter": {
-        "platforms": {
-            "android": {
-                "default": {
-                    "projectId": "event-scheduler-project",
-                    "appId": "1:563501365788:android:a54c96b682a265d96c7dd9",
-                    "fileOutput": "android/app/google-services.json"
-                }
-            },
-            "dart": {
-                "lib/firebase_options.dart": {
-                    "projectId": "event-scheduler-project",
-                    "configurations": {
-                        "android": "1:563501365788:android:a54c96b682a265d96c7dd9",
-                        "ios": "1:563501365788:ios:f888492ccd0884226c7dd9",
-                        "web": "1:563501365788:web:5c37a8279d8874416c7dd9"
-                    }
-                }
-            }
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "event-scheduler-project",
+          "appId": "1:563501365788:android:a54c96b682a265d96c7dd9",
+          "fileOutput": "android/app/google-services.json"
         }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "event-scheduler-project",
+          "configurations": {
+            "android": "1:563501365788:android:a54c96b682a265d96c7dd9",
+            "ios": "1:563501365788:ios:f888492ccd0884226c7dd9",
+            "web": "1:563501365788:web:5c37a8279d8874416c7dd9"
+          }
+        }
+      }
     }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "disallowLegacyRuntimeConfig": true,
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint",
+        "npm --prefix \"$RESOURCE_DIR\" run build"
+      ]
+    }
+  ]
 }

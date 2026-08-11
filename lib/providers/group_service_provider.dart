@@ -13,7 +13,7 @@ final groupServiceProvider = Provider<GroupService>((ref) {
 
 final userGroupsProvider = FutureProvider<List<DatabaseGroup>>((ref) async {
   final groupIds = ref.watch(
-    currentUserDataProvider.select((user) => user.value?.groupIds ?? []),
+    currentUserDataProvider.select((user) => user.value?.groupsId ?? []),
   );
 
   if (groupIds.isEmpty) {
@@ -31,25 +31,28 @@ final userGroupsProvider = FutureProvider<List<DatabaseGroup>>((ref) async {
       .toList();
 });
 
-final groupParticipantsProvider = FutureProvider.family<List<String>, String>((
-  ref,
-  groupId,
-) async {
-  final service = await ref.watch(groupDetailsProvider(groupId).future);
-
-  if (service.members.isEmpty) {
-    return [];
-  }
-
-  try {
-    return await ref.read(authServiceProvider).getNamesByIds(service.members);
-  } catch (e) {
-    return [];
-  }
-});
-
 final groupDetailsProvider = FutureProvider.autoDispose
     .family<DatabaseGroup, String>((ref, groupId) {
       final groupService = ref.watch(groupServiceProvider);
       return groupService.getGroupById(groupId: groupId);
+    });
+
+final groupParticipantsProvider =
+    FutureProvider.family<List<({String id, String nickname})>, String>((
+      ref,
+      groupId,
+    ) async {
+      final service = await ref.watch(groupDetailsProvider(groupId).future);
+
+      if (service.members.isEmpty) {
+        return [];
+      }
+
+      try {
+        return await ref
+            .read(authServiceProvider)
+            .getNamesByIds(service.members);
+      } catch (e) {
+        return [];
+      }
     });

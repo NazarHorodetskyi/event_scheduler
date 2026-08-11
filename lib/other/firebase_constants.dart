@@ -7,7 +7,7 @@ class FirebaseConstants {
 
   // user fields
   static const String userId = "id";
-  static const String userGroups = "groupIds";
+  static const String userGroups = "groupsId";
   static const String email = "email";
   static const String nickname = "nickname";
 

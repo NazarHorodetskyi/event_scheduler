@@ -3,6 +3,7 @@ import 'package:event_scheduler/models/database_group_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import "package:event_scheduler/other/firebase_constants.dart";
 import 'package:event_scheduler/other/exceptions.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 
 class GroupService {
   GroupService({required FirebaseFirestore db}) : _db = db;
@@ -121,20 +122,22 @@ class GroupService {
       for (var doc in invitesSnapshot.docs) {
         batch.delete(doc.reference);
       }
+
+      await batch.commit().timeout(
+        const Duration(seconds: 10),
+        onTimeout: () => throw ConnectionErrorException(),
+      );
+
+      return;
     } else {
       batch.update(groupRef, {
         FirebaseConstants.groupMembers: FieldValue.arrayRemove([userId]),
       });
     }
 
-    List<String> groupEventsIds = [];
     // Remove user from any events
     for (var doc in groupEvents.docs) {
       final eventData = doc.data();
-      groupEventsIds.add(eventData[FirebaseConstants.eventId] ?? doc.id);
-      if (deleteGroup) {
-        continue;
-      }
 
       // Standart update
       Map<String, dynamic> eventUpdates = {
@@ -237,5 +240,23 @@ class GroupService {
     }
 
     await batch.commit();
+  }
+
+  Future<void> kickParticipant({
+    required String groupId,
+    required String targetUserId,
+  }) async {
+    try {
+      // 1. Initialize the callable function with the EXACT name from index.ts
+      final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable(
+        'kickUser',
+      );
+
+      await callable.call({'groupId': groupId, 'targetUserId': targetUserId});
+    } on FirebaseFunctionsException catch (e) {
+      throw Exception("Backend error: ${e.message} ");
+    } catch (e) {
+      throw Exception("Failed to kick user");
+    }
   }
 }

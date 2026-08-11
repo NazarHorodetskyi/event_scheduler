@@ -4,13 +4,13 @@ class DatabaseUser {
   final String uid;
   final String email;
   final String nickname;
-  final List<String> groupIds;
+  final List<String> groupsId;
 
   DatabaseUser({
     required this.uid,
     required this.email,
     required this.nickname,
-    required this.groupIds,
+    required this.groupsId,
   });
 
   Map<String, dynamic> toMap() {
@@ -18,7 +18,7 @@ class DatabaseUser {
       FirebaseConstants.userId: uid,
       FirebaseConstants.email: email,
       FirebaseConstants.nickname: nickname,
-      FirebaseConstants.userGroups: groupIds,
+      FirebaseConstants.userGroups: groupsId,
     };
   }
 
@@ -27,7 +27,7 @@ class DatabaseUser {
       uid: map[FirebaseConstants.userId] ?? "",
       email: map[FirebaseConstants.email] ?? '',
       nickname: map[FirebaseConstants.nickname] ?? 'User',
-      groupIds: List<String>.from(map[FirebaseConstants.userGroups] ?? []),
+      groupsId: List<String>.from(map[FirebaseConstants.userGroups] ?? []),
     );
   }
 }

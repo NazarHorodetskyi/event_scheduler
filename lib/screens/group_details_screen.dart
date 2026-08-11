@@ -115,8 +115,8 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
                   SizedBox(
                     height: 40,
                     child: participantsAsync.when(
-                      data: (names) {
-                        if (names.isEmpty) {
+                      data: (participants) {
+                        if (participants.isEmpty) {
                           return const Padding(
                             padding: EdgeInsets.only(left: 16),
                             child: Text("No participants"),
@@ -127,16 +127,110 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
                           physics: const AlwaysScrollableScrollPhysics(),
                           scrollDirection: Axis.horizontal,
                           padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                          itemCount: names.length,
+                          itemCount: participants.length,
                           itemBuilder: (context, index) {
+                            final participant = participants[index];
+                            final participantId = participant.id;
+                            final participantName = participant.nickname;
+
+                            final isMe = participantId == currentUser.uid;
+
                             return Padding(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 4.0,
                               ),
                               child: Chip(
-                                label: Text(names[index]),
+                                label: Text(participantName),
                                 backgroundColor: Colors.blue.shade100,
                                 side: BorderSide.none,
+                                onDeleted: (isGroupOwner && !isMe)
+                                    ? () async {
+                                        final confirm = await showDialog<bool>(
+                                          context: context,
+                                          builder: (ctx) => AlertDialog(
+                                            title: const Text("Kick user?"),
+                                            content: Text(
+                                              "Are you sure you want to kick $participantName?",
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () => Navigator.of(
+                                                  ctx,
+                                                ).pop(false),
+                                                child: const Text("Cancel"),
+                                              ),
+                                              TextButton(
+                                                onPressed: () =>
+                                                    Navigator.of(ctx).pop(true),
+                                                child: const Text(
+                                                  "Kick",
+                                                  style: TextStyle(
+                                                    color: Colors.red,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+
+                                        if (confirm == true) {
+                                          try {
+                                            if (context.mounted) {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                    "Removing user...",
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                            await ref
+                                                .read(groupServiceProvider)
+                                                .kickParticipant(
+                                                  groupId: widget.groupId,
+                                                  targetUserId: participantId,
+                                                );
+
+                                            ref.invalidate(
+                                              groupParticipantsProvider(
+                                                widget.groupId,
+                                              ),
+                                            );
+                                            ref.invalidate(
+                                              groupDetailsProvider(
+                                                widget.groupId,
+                                              ),
+                                            );
+                                            ref.invalidate(groupEventsProvider);
+
+                                            if (context.mounted) {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    "$participantName was removed.",
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                          } catch (e) {
+                                            if (context.mounted) {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(e.toString()),
+                                                  backgroundColor: Colors.red,
+                                                ),
+                                              );
+                                            }
+                                          }
+                                        }
+                                      }
+                                    : null,
                               ),
                             );
                           },

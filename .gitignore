@@ -5,41 +5,55 @@
 *.swp
 .DS_Store
 .atom/
-.build/
 .buildlog/
 .history
 .svn/
-.swiftpm/
-migrate_working_dir/
-
-# IntelliJ related
+.idea/
 *.iml
 *.ipr
 *.iws
-.idea/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
+# Flutter/Dart/Pub
 .dart_tool/
+.flutter-plugins
 .flutter-plugins-dependencies
+.packages
 .pub-cache/
 .pub/
-/build/
+build/
 /coverage/
+lib/generated_plugin_registrant.dart
 
-# Symbolication related
-app.*.symbols
+# Android
+android/key.properties
+android/**/*.keystore
+android/**/*.jks
+android/local.properties
+android/project.properties
+android/app/build/
+android/.gradle/
+android/.idea/
 
-# Obfuscation related
-app.*.map.json
+# iOS/macOS
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/app.flx
+ios/Flutter/app.zip
+ios/Flutter/flutter_assets/
+ios/Runner/GeneratedPluginRegistrant.*
+ios/Runner.xcworkspace/xcuserdata/
+ios/Runner.xcodeproj/project.xcworkspace/xcuserdata/
+macOS/Pods/
+macOS/Runner.xcworkspace/xcuserdata/
 
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
+# Firebase & Cloud Functions (Твій бекенд)
+.firebase/
+firebase-debug.log
+firebase-debug.err
+functions/lib/
+functions/node_modules/
+functions/.env

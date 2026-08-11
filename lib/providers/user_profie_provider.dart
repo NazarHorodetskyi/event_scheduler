@@ -1,11 +1,11 @@
 import 'package:event_scheduler/models/database_user_model.dart';
 import 'package:event_scheduler/other/firebase_constants.dart';
-import 'package:event_scheduler/providers/auth_service_provider.dart';
 import 'package:event_scheduler/providers/firebase_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final currentUserDataProvider = StreamProvider<DatabaseUser>((ref) {
-  final user = ref.watch(authServiceProvider).currentUser;
+  final authState = ref.watch(authStateProvider);
+  final user = authState.value;
 
   if (user == null) {
     return const Stream.empty();
