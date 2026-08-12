@@ -39,7 +39,7 @@ class FirebaseConstants {
   static const String inviteSenderId = "senderId";
   static const String inviteReceiverId = "receiverId";
   static const String inviteStatus = "status";
-  static const String inviteTimestamp = "timestamp";
+  static const String inviteTimestamp = "statusChangeTime";
 
   // Invite statuses
   static const String inviteStatusPending = "pending";

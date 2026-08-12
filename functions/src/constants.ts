@@ -38,7 +38,7 @@ export const FirebaseConstants = {
   inviteSenderId: "senderId",
   inviteReceiverId: "receiverId",
   inviteStatus: "status",
-  inviteTimestamp: "timestamp",
+  inviteTimestamp: "statusChangeTime",
 
   // Invite statuses
   inviteStatusPending: "pending",
