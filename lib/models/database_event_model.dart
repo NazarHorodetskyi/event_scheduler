@@ -26,6 +26,10 @@ class EventModel {
     this.editTime,
   });
 
+  bool get isCompleted {
+    return DateTime.now().isAfter(eventDate);
+  }
+
   factory EventModel.fromMap(Map<String, dynamic> map) {
     return EventModel(
       eventId: map[FirebaseConstants.eventId],

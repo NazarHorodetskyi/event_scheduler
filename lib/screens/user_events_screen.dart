@@ -1,4 +1,5 @@
 import 'package:event_scheduler/providers/event_service_provider.dart';
+import 'package:event_scheduler/screens/group_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -27,22 +28,51 @@ class UserEventsScreen extends ConsumerWidget {
                 return Center(child: Text("You have no events"));
               }
 
+              events.sort((a, b) {
+                if (a.isCompleted != b.isCompleted) {
+                  return a.isCompleted ? 1 : -1;
+                }
+                if (a.isCompleted && b.isCompleted) {
+                  return a.eventDate.compareTo(b.eventDate) * -1;
+                }
+                return a.eventDate.compareTo(b.eventDate);
+              });
+
               return ListView.builder(
                 shrinkWrap: true,
                 physics: NeverScrollableScrollPhysics(),
                 itemCount: events.length,
                 itemBuilder: (context, index) {
-                  return Card(
-                    margin: EdgeInsets.all(8.0),
-                    child: ListTile(
-                      title: Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(events[index].title),
-                          ),
-                          Text("from group ${events[index].groupName}"),
-                        ],
+                  final event = events[index];
+
+                  return Opacity(
+                    opacity: event.isCompleted ? 0.6 : 1,
+                    child: Card(
+                      margin: EdgeInsets.all(8.0),
+                      child: ListTile(
+                        onTap: event.isCompleted
+                            ? null
+                            : () async {
+                                await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => GroupDetailsScreen(
+                                      groupId: event.groupId,
+                                      groupName: event.groupName,
+                                    ),
+                                  ),
+                                );
+                              },
+                        title: Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(events[index].title),
+                            ),
+                            Text("from group ${event.groupName}"),
+                          ],
+                        ),
+                        trailing: Text(event.eventDate.toString()),
                       ),
                     ),
                   );

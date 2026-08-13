@@ -252,6 +252,16 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
                         return const Center(child: Text("No events yet"));
                       }
 
+                      events.sort((a, b) {
+                        if (a.isCompleted != b.isCompleted) {
+                          return a.isCompleted ? 1 : -1;
+                        }
+                        if (a.isCompleted && b.isCompleted) {
+                          return a.eventDate.compareTo(b.eventDate) * -1;
+                        }
+                        return a.eventDate.compareTo(b.eventDate);
+                      });
+
                       return ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
@@ -261,227 +271,255 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
                           final isEventOwner =
                               ((currentUser.uid == event.creatorId) ||
                               (currentUser.uid == group.ownerId));
-                          return Column(
-                            children: [
-                              ListTile(
-                                title: Text(event.title),
-                                subtitle: Text(event.description),
-                                trailing: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      event.eventDate.toString().substring(
-                                        0,
-                                        16,
-                                      ),
-                                    ),
+                          return Opacity(
+                            opacity: event.isCompleted ? 0.6 : 1,
+                            child: Column(
+                              children: [
+                                ListTile(
+                                  title: Text(event.title),
+                                  subtitle: Text(event.description),
+                                  trailing: !event.isCompleted
+                                      ? Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            if (!event.participants.contains(
+                                              currentUser.uid,
+                                            )) ...{
+                                              ElevatedButton(
+                                                child: Text("Agree"),
+                                                onPressed: () async {
+                                                  try {
+                                                    await ref
+                                                        .read(
+                                                          eventServiceProvider,
+                                                        )
+                                                        .agreeToEvent(
+                                                          currentUser.uid,
+                                                          event.eventId,
+                                                        );
 
-                                    if (!event.participants.contains(
-                                      currentUser.uid,
-                                    )) ...{
-                                      ElevatedButton(
-                                        child: Text("Agree"),
-                                        onPressed: () async {
-                                          try {
-                                            await ref
-                                                .read(eventServiceProvider)
-                                                .agreeToEvent(
-                                                  currentUser.uid,
-                                                  event.eventId,
-                                                );
+                                                    ref.invalidate(
+                                                      eventServiceProvider,
+                                                    );
+                                                    ref.invalidate(
+                                                      userEventsProvider,
+                                                    );
+                                                  } catch (e) {
+                                                    if (context.mounted) {
+                                                      ScaffoldMessenger.of(
+                                                        context,
+                                                      ).showSnackBar(
+                                                        SnackBar(
+                                                          content: Text(
+                                                            e.toString(),
+                                                          ),
+                                                        ),
+                                                      );
+                                                    }
+                                                  }
+                                                },
+                                              ),
+                                            },
 
-                                            ref.invalidate(
-                                              eventServiceProvider,
-                                            );
-                                            ref.invalidate(userEventsProvider);
-                                          } catch (e) {
-                                            if (context.mounted) {
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(e.toString()),
-                                                ),
-                                              );
-                                            }
-                                          }
-                                        },
-                                      ),
-                                    },
+                                            if (!event.decliners.contains(
+                                              currentUser.uid,
+                                            )) ...{
+                                              ElevatedButton(
+                                                child: Text("Decline"),
+                                                onPressed: () async {
+                                                  try {
+                                                    await ref
+                                                        .read(
+                                                          eventServiceProvider,
+                                                        )
+                                                        .declineTheEvent(
+                                                          currentUser.uid,
+                                                          event.eventId,
+                                                        );
 
-                                    if (!event.decliners.contains(
-                                      currentUser.uid,
-                                    )) ...{
-                                      ElevatedButton(
-                                        child: Text("Decline"),
-                                        onPressed: () async {
-                                          try {
-                                            await ref
-                                                .read(eventServiceProvider)
-                                                .declineTheEvent(
-                                                  currentUser.uid,
-                                                  event.eventId,
-                                                );
+                                                    ref.invalidate(
+                                                      eventServiceProvider,
+                                                    );
+                                                    ref.invalidate(
+                                                      userEventsProvider,
+                                                    );
+                                                  } catch (e) {
+                                                    if (context.mounted) {
+                                                      ScaffoldMessenger.of(
+                                                        context,
+                                                      ).showSnackBar(
+                                                        SnackBar(
+                                                          content: Text(
+                                                            e.toString(),
+                                                          ),
+                                                        ),
+                                                      );
+                                                    }
+                                                  }
+                                                },
+                                              ),
+                                            },
 
-                                            ref.invalidate(
-                                              eventServiceProvider,
-                                            );
-                                            ref.invalidate(userEventsProvider);
-                                          } catch (e) {
-                                            if (context.mounted) {
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(e.toString()),
-                                                ),
-                                              );
-                                            }
-                                          }
-                                        },
-                                      ),
-                                    },
+                                            // Delete button
+                                            if (isEventOwner)
+                                              Row(
+                                                children: [
+                                                  // Edit button
+                                                  IconButton(
+                                                    icon: const Icon(
+                                                      Icons.edit,
+                                                      color: Colors.orange,
+                                                    ),
+                                                    onPressed: () async {
+                                                      try {
+                                                        final result =
+                                                            await Navigator.of(
+                                                              context,
+                                                            ).push(
+                                                              MaterialPageRoute(
+                                                                builder: (context) => EventWizardScreen(
+                                                                  groupId: widget
+                                                                      .groupId,
+                                                                  groupName:
+                                                                      group
+                                                                          .name,
+                                                                  existingEvent:
+                                                                      event,
+                                                                  groupOwnerId:
+                                                                      group
+                                                                          .ownerId,
+                                                                ),
+                                                              ),
+                                                            );
 
-                                    // Delete button
-                                    if (isEventOwner)
-                                      Row(
-                                        children: [
-                                          // Edit button
-                                          IconButton(
-                                            icon: const Icon(
-                                              Icons.edit,
-                                              color: Colors.orange,
-                                            ),
-                                            onPressed: () async {
-                                              try {
-                                                final result =
-                                                    await Navigator.of(
-                                                      context,
-                                                    ).push(
-                                                      MaterialPageRoute(
-                                                        builder: (context) =>
-                                                            EventWizardScreen(
-                                                              groupId: widget
-                                                                  .groupId,
-                                                              groupName:
-                                                                  group.name,
-                                                              existingEvent:
-                                                                  event,
+                                                        if (result == true) {
+                                                          ref.invalidate(
+                                                            groupEventsProvider(
+                                                              event.groupId,
+                                                            ),
+                                                          );
+                                                          ref.invalidate(
+                                                            userEventsProvider,
+                                                          );
+                                                          if (context.mounted) {
+                                                            ScaffoldMessenger.of(
+                                                              context,
+                                                            ).showSnackBar(
+                                                              const SnackBar(
+                                                                content: Text(
+                                                                  'Event edited!',
+                                                                ),
+                                                              ),
+                                                            );
+                                                          }
+                                                        }
+                                                      } catch (e) {
+                                                        if (context.mounted) {
+                                                          ScaffoldMessenger.of(
+                                                            context,
+                                                          ).showSnackBar(
+                                                            SnackBar(
+                                                              content: Text(
+                                                                e.toString(),
+                                                              ),
+                                                              backgroundColor:
+                                                                  Colors.red,
+                                                            ),
+                                                          );
+                                                        }
+                                                      }
+                                                    },
+                                                  ),
+
+                                                  // Delete button
+                                                  IconButton(
+                                                    icon: const Icon(
+                                                      Icons.delete,
+                                                      color: Colors.red,
+                                                    ),
+                                                    onPressed: () async {
+                                                      try {
+                                                        final eventService = ref
+                                                            .read(
+                                                              eventServiceProvider,
+                                                            );
+                                                        await eventService
+                                                            .deleteEvent(
+                                                              eventOwnerId: event
+                                                                  .creatorId,
                                                               groupOwnerId:
                                                                   group.ownerId,
+                                                              eventId:
+                                                                  event.eventId,
+                                                              currentUserId:
+                                                                  currentUser
+                                                                      .uid,
+                                                            );
+
+                                                        ref.invalidate(
+                                                          groupEventsProvider(
+                                                            event.groupId,
+                                                          ),
+                                                        );
+                                                        ref.invalidate(
+                                                          userEventsProvider,
+                                                        );
+                                                        if (context.mounted) {
+                                                          ScaffoldMessenger.of(
+                                                            context,
+                                                          ).showSnackBar(
+                                                            const SnackBar(
+                                                              content: Text(
+                                                                'Event deleted!',
+                                                              ),
                                                             ),
-                                                      ),
-                                                    );
-
-                                                if (result == true) {
-                                                  ref.invalidate(
-                                                    groupEventsProvider(
-                                                      event.groupId,
-                                                    ),
-                                                  );
-                                                  ref.invalidate(
-                                                    userEventsProvider,
-                                                  );
-                                                  if (context.mounted) {
-                                                    ScaffoldMessenger.of(
-                                                      context,
-                                                    ).showSnackBar(
-                                                      const SnackBar(
-                                                        content: Text(
-                                                          'Event edited!',
-                                                        ),
-                                                      ),
-                                                    );
-                                                  }
-                                                }
-                                              } catch (e) {
-                                                if (context.mounted) {
-                                                  ScaffoldMessenger.of(
-                                                    context,
-                                                  ).showSnackBar(
-                                                    SnackBar(
-                                                      content: Text(
-                                                        e.toString(),
-                                                      ),
-                                                      backgroundColor:
-                                                          Colors.red,
-                                                    ),
-                                                  );
-                                                }
-                                              }
-                                            },
-                                          ),
-
-                                          // Delete button
-                                          IconButton(
-                                            icon: const Icon(
-                                              Icons.delete,
-                                              color: Colors.red,
-                                            ),
-                                            onPressed: () async {
-                                              try {
-                                                final eventService = ref.read(
-                                                  eventServiceProvider,
-                                                );
-                                                await eventService.deleteEvent(
-                                                  eventOwnerId: event.creatorId,
-                                                  groupOwnerId: group.ownerId,
-                                                  eventId: event.eventId,
-                                                  currentUserId:
-                                                      currentUser.uid,
-                                                );
-
-                                                ref.invalidate(
-                                                  groupEventsProvider(
-                                                    event.groupId,
+                                                          );
+                                                        }
+                                                      } catch (e) {
+                                                        if (context.mounted) {
+                                                          ScaffoldMessenger.of(
+                                                            context,
+                                                          ).showSnackBar(
+                                                            SnackBar(
+                                                              content: Text(
+                                                                e.toString(),
+                                                              ),
+                                                              backgroundColor:
+                                                                  Colors.red,
+                                                            ),
+                                                          );
+                                                        }
+                                                      }
+                                                    },
                                                   ),
-                                                );
-                                                ref.invalidate(
-                                                  userEventsProvider,
-                                                );
-                                                if (context.mounted) {
-                                                  ScaffoldMessenger.of(
-                                                    context,
-                                                  ).showSnackBar(
-                                                    const SnackBar(
-                                                      content: Text(
-                                                        'Event deleted!',
-                                                      ),
-                                                    ),
-                                                  );
-                                                }
-                                              } catch (e) {
-                                                if (context.mounted) {
-                                                  ScaffoldMessenger.of(
-                                                    context,
-                                                  ).showSnackBar(
-                                                    SnackBar(
-                                                      content: Text(
-                                                        e.toString(),
-                                                      ),
-                                                      backgroundColor:
-                                                          Colors.red,
-                                                    ),
-                                                  );
-                                                }
-                                              }
-                                            },
+                                                ],
+                                              ),
+                                          ],
+                                        )
+                                      : null,
+                                ),
+                                Column(
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          "Participants: ${event.participants.length}",
+                                        ),
+                                        Text(
+                                          "Decliners: ${event.decliners.length}",
+                                        ),
+                                        if (!event.isCompleted) ...{
+                                          Text(
+                                            "Group members ${group.members.length}",
                                           ),
-                                        ],
-                                      ),
+                                        },
+                                      ],
+                                    ),
+                                    Text(event.eventDate.toString()),
                                   ],
                                 ),
-                              ),
-                              Row(
-                                children: [
-                                  Text(
-                                    "Participants: ${event.participants.length}",
-                                  ),
-                                  Text("Decliners: ${event.decliners.length}"),
-                                  Text("Group members ${group.members.length}"),
-                                ],
-                              ),
-                            ],
+                              ],
+                            ),
                           );
                         },
                       );
