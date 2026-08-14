@@ -16,6 +16,69 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   final TextEditingController passwordController = TextEditingController();
   String errorMessage = "";
 
+  Future<void> _showPasswordResetDialog(BuildContext context) async {
+    final emailController = TextEditingController();
+
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Password recovery'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Enter your email for recovery list'),
+              const SizedBox(height: 16),
+              TextField(
+                controller: emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final email = emailController.text.trim();
+                if (email.isEmpty) return;
+
+                try {
+                  ref.read(authServiceProvider).sendPasswordResetEmail(email);
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Email sent!'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error: ${e.toString()}'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              child: const Text('Send'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void signInButtonClick() async {
     setState(() {
       errorMessage = "";
@@ -111,6 +174,12 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             ),
             SizedBox(height: 15),
             Text(errorMessage),
+            TextButton(
+              onPressed: () {
+                _showPasswordResetDialog(context);
+              },
+              child: const Text('Forgot password?'),
+            ),
           ],
         ),
       ),

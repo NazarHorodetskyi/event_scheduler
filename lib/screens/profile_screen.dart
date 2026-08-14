@@ -2,6 +2,7 @@ import 'package:event_scheduler/providers/auth_service_provider.dart';
 import 'package:event_scheduler/providers/group_service_provider.dart';
 import 'package:event_scheduler/providers/user_profie_provider.dart';
 import 'package:event_scheduler/screens/profile_editing_screen.dart';
+import 'package:event_scheduler/screens/update_password_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -49,6 +50,26 @@ class ProfileScreen extends ConsumerWidget {
 
               child: Icon(Icons.edit),
             ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => UpdatePasswordScreen()),
+              );
+
+              if (result && context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("Password changed!"),
+                    backgroundColor: Colors.green,
+                    duration: Duration(seconds: 1),
+                  ),
+                );
+              }
+            },
+
+            child: Text("Change password"),
           ),
           // Log out button
           Padding(

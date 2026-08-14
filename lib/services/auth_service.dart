@@ -255,4 +255,12 @@ class AuthService {
 
     return snapshot.docs.isEmpty;
   }
+
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _firebaseAuth.sendPasswordResetEmail(email: email);
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

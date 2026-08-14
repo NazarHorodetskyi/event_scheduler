@@ -29,7 +29,7 @@ class DatabaseGroup {
       recentMessage: map[FirebaseConstants.recentMessage] ?? "",
       recentMessageTime: map[FirebaseConstants.recentMessageTime] != null
           ? (map[FirebaseConstants.recentMessageTime] as Timestamp).toDate()
-          : DateTime.now(),
+          : DateTime.now(), // Заглушка...
       description: map[FirebaseConstants.groupDescription] ?? "",
     );
   }
