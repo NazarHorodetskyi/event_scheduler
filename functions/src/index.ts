@@ -46,13 +46,13 @@ export const kickUser = onCall(async (request) => {
     // Initialize the batch
     const batch = db.batch();
 
-    // 1. Remove user from the group
+    // Remove user from the group
     batch.update(groupRef, {
       [FirebaseConstants.groupMembers]:
       admin.firestore.FieldValue.arrayRemove(targetUserId),
     });
 
-    // 2. Remove group from the user's profile
+    // Remove group from the user's profile
     const targetUserRef = db.collection(FirebaseConstants.usersCollection)
       .doc(targetUserId);
     batch.update(targetUserRef, {
@@ -60,7 +60,7 @@ export const kickUser = onCall(async (request) => {
       admin.firestore.FieldValue.arrayRemove(groupId),
     });
 
-    // 3. Cascade updates for all events in this group
+    // Cascade updates for all events in this group
     const eventsSnap = await db.collection(FirebaseConstants.eventsCollection)
       .where(FirebaseConstants.eventGroupId, "==", groupId)
       .get();
@@ -76,7 +76,7 @@ export const kickUser = onCall(async (request) => {
         needsUpdate = true;
       }
 
-      // B: Check if the user is in the participants array
+      // Check if the user is in the participants array
       const participants = eventData[FirebaseConstants.eventParticipants] || [];
       if (participants.includes(targetUserId)) {
         updateData[FirebaseConstants.eventParticipants] =
@@ -84,7 +84,7 @@ export const kickUser = onCall(async (request) => {
         needsUpdate = true;
       }
 
-      // C: Check if the user is in the decliners array
+      // Check if the user is in the decliners array
       const decliners = eventData[FirebaseConstants.eventDecliners] || [];
       if (decliners.includes(targetUserId)) {
         updateData[FirebaseConstants.eventDecliners] =
