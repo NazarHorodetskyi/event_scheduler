@@ -142,6 +142,7 @@ class _AddingScreenState extends ConsumerState<AddingScreen> {
                         groupName: widget.group.name,
                         senderId: senderId,
                         receiverId: user.uid,
+                        membersCount: widget.group.members.length,
                       ),
                 );
 

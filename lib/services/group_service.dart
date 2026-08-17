@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:event_scheduler/models/database_group_model.dart';
+import 'package:event_scheduler/other/app_limits.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import "package:event_scheduler/other/firebase_constants.dart";
 import 'package:event_scheduler/other/exceptions.dart';
@@ -28,12 +29,26 @@ class GroupService {
     }
   }
 
-  Future<void> createGroup(String ownerId, String groupName) async {
+  Future<void> createGroup({
+    required String ownerId,
+    required String groupName,
+    required int userGroupsCount,
+  }) async {
+    final newGroupName = groupName.trim();
+
+    if (userGroupsCount >= AppLimits.maxUserGroups) {
+      throw Exception("You have reached maximum ammount of groups!");
+    }
+
+    if (newGroupName.length < 5) {
+      throw Exception("Name should be at least 5 characters long!");
+    }
+
     DocumentReference groupDocRef = _db
         .collection(FirebaseConstants.groupsCollection)
         .doc();
     DatabaseGroup newGroup = DatabaseGroup(
-      name: groupName,
+      name: newGroupName,
       ownerId: ownerId,
       groupId: groupDocRef.id,
       members: [ownerId],

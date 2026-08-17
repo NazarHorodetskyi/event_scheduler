@@ -3,6 +3,7 @@ import 'package:event_scheduler/providers/auth_service_provider.dart';
 import 'package:event_scheduler/providers/event_service_provider.dart';
 import 'package:event_scheduler/providers/group_service_provider.dart';
 import 'package:event_scheduler/providers/invite_service_provider.dart';
+import 'package:event_scheduler/providers/user_profie_provider.dart';
 import 'package:event_scheduler/screens/group_details_screen.dart';
 import 'package:event_scheduler/screens/messages_screen.dart';
 import 'package:flutter/material.dart';
@@ -140,6 +141,13 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
                 try {
                   final groupService = ref.read(groupServiceProvider);
                   final authService = ref.read(authServiceProvider);
+                  final userGroupsCount =
+                      ref
+                          .read(currentUserDataProvider)
+                          .value
+                          ?.groupsId
+                          .length ??
+                      0;
 
                   final currentAuthUser = authService.currentUser;
                   if (currentAuthUser == null) {
@@ -147,8 +155,9 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
                   }
 
                   await groupService.createGroup(
-                    currentAuthUser.uid,
-                    groupName,
+                    ownerId: currentAuthUser.uid,
+                    groupName: groupName,
+                    userGroupsCount: userGroupsCount,
                   );
                   if (context.mounted) {
                     Navigator.pop(context);
@@ -202,6 +211,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
 
             ElevatedButton(
               onPressed: () async {
+                final messenger = ScaffoldMessenger.of(context);
                 try {
                   final groupService = ref.read(groupServiceProvider);
 
@@ -211,25 +221,23 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
                   ref.invalidate(userGroupsProvider);
                   ref.invalidate(userEventsProvider);
 
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Success'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  }
+                  messenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('Success'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
                 } catch (e) {
-                  if (context.mounted) {
+                  if (dialogContext.mounted) {
                     Navigator.of(dialogContext).pop();
-                    String errorMessage = e.toString();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(errorMessage),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
                   }
+                  String errorMessage = e.toString();
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: Text(errorMessage),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
                 }
               },
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red),

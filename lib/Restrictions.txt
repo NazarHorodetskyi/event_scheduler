@@ -1,2 +1,6 @@
 Nickname:
     - at least 5 long
+
+
+Group:
+    - Name at least 5 long

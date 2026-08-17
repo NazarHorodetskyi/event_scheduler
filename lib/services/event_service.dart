@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:event_scheduler/other/app_limits.dart';
 import 'package:event_scheduler/other/exceptions.dart';
 import 'package:event_scheduler/other/firebase_constants.dart';
 import 'package:event_scheduler/models/database_event_model.dart';
@@ -15,6 +16,19 @@ class EventService {
     required String description,
     required DateTime eventDate,
   }) async {
+    final AggregateQuerySnapshot countSnapshot = await _db
+        .collection(FirebaseConstants.eventsCollection)
+        .where(FirebaseConstants.eventGroupId, isEqualTo: groupId)
+        .where(FirebaseConstants.eventDate, isGreaterThan: Timestamp.now())
+        .count()
+        .get();
+
+    final int activeCount = countSnapshot.count ?? 0;
+
+    if (activeCount >= AppLimits.maxGroupActiveEvents) {
+      throw Exception("This group reached maximum ammount of active events!");
+    }
+
     DocumentReference eventDocRef = _db
         .collection(FirebaseConstants.eventsCollection)
         .doc();

@@ -1,6 +1,7 @@
 import 'package:event_scheduler/providers/auth_service_provider.dart';
 import 'package:event_scheduler/providers/group_service_provider.dart';
 import 'package:event_scheduler/providers/invite_service_provider.dart';
+import 'package:event_scheduler/providers/user_profie_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -57,15 +58,24 @@ class _MessageScreenState extends ConsumerState<MessageScreen> {
                     IconButton(
                       onPressed: () async {
                         try {
+                          final userGroupsCount =
+                              (ref
+                                          .read(currentUserDataProvider)
+                                          .value
+                                          ?.groupsId ??
+                                      [])
+                                  .length;
                           await ref
                               .read(inviteServiceProvider)
                               .acceptInvite(
+                                userGroupsCount: userGroupsCount,
                                 inviteId: invite.inviteId,
                                 receiverId: invite.receiverId,
                                 groupId: invite.groupId,
                               );
 
                           ref.invalidate(userGroupsProvider);
+                          ref.invalidate(groupDetailsProvider(invite.groupId));
                         } catch (e) {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:event_scheduler/models/database_invite_model.dart';
+import 'package:event_scheduler/other/app_limits.dart';
 import 'package:event_scheduler/other/firebase_constants.dart';
 
 class InviteService {
@@ -27,7 +28,12 @@ class InviteService {
     required String groupName,
     required String senderId,
     required String receiverId,
+    required int membersCount,
   }) async {
+    if (membersCount >= AppLimits.maxGroupParticipants) {
+      throw Exception("Group already have 50 participants!");
+    }
+
     final String inviteId = '${groupId}_$receiverId';
 
     final inviteSnapshot = await _db
@@ -94,8 +100,13 @@ class InviteService {
     required String inviteId,
     required String receiverId,
     required String groupId,
+    required int userGroupsCount,
   }) async {
     try {
+      if (userGroupsCount >= AppLimits.maxUserGroups) {
+        throw Exception("You already reached the limit, cant join this group!");
+      }
+
       // Existence check
       final groupSnapshot = await _db
           .collection(FirebaseConstants.groupsCollection)
@@ -108,6 +119,15 @@ class InviteService {
             .doc(inviteId)
             .delete();
         throw Exception("Group does not exist");
+      }
+
+      final groupData = groupSnapshot.data();
+      final membersCount = List<String>.from(
+        groupData?[FirebaseConstants.groupMembers] ?? [],
+      ).length;
+
+      if (membersCount >= AppLimits.maxGroupParticipants) {
+        throw Exception("This group have maximum ammount of particioants");
       }
 
       WriteBatch batch = _db.batch();
