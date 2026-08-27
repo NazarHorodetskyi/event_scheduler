@@ -25,14 +25,15 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
   Future<void> _refresh() async {
     await Future.wait([
       ref.refresh(groupDetailsProvider(widget.groupId).future),
-      ref.refresh(groupEventsProvider(widget.groupId).future),
+      ref.refresh(activeGroupEventsProvider(widget.groupId).future),
+      ref.refresh(pastGroupEventsProvider(widget.groupId).future),
     ]);
   }
 
   @override
   Widget build(BuildContext context) {
     final groupData = ref.watch(groupDetailsProvider(widget.groupId));
-    final eventsAsync = ref.watch(groupEventsProvider(widget.groupId));
+    final eventsAsync = ref.watch(activeGroupEventsProvider(widget.groupId));
     final currentUser = ref.watch(authServiceProvider).currentUser!;
     final participantsAsync = ref.watch(
       groupParticipantsProvider(widget.groupId),
@@ -83,7 +84,8 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
 
                             if (result == true) {
                               ref.invalidate(groupDetailsProvider);
-                              ref.invalidate(userEventsProvider);
+                              ref.invalidate(activeUserEventsProvider);
+                              ref.invalidate(pastUserEventsProvider);
                               ref.invalidate(userGroupsProvider);
 
                               if (context.mounted) {
@@ -203,7 +205,12 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
                                                 widget.groupId,
                                               ),
                                             );
-                                            ref.invalidate(groupEventsProvider);
+                                            ref.invalidate(
+                                              activeGroupEventsProvider,
+                                            );
+                                            ref.invalidate(
+                                              pastGroupEventsProvider,
+                                            );
 
                                             if (context.mounted) {
                                               ScaffoldMessenger.of(
@@ -302,7 +309,7 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
                                                       eventServiceProvider,
                                                     );
                                                     ref.invalidate(
-                                                      userEventsProvider,
+                                                      activeUserEventsProvider,
                                                     );
                                                   } catch (e) {
                                                     if (context.mounted) {
@@ -341,7 +348,7 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
                                                       eventServiceProvider,
                                                     );
                                                     ref.invalidate(
-                                                      userEventsProvider,
+                                                      activeUserEventsProvider,
                                                     );
                                                   } catch (e) {
                                                     if (context.mounted) {
@@ -394,12 +401,12 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
 
                                                         if (result == true) {
                                                           ref.invalidate(
-                                                            groupEventsProvider(
+                                                            activeGroupEventsProvider(
                                                               event.groupId,
                                                             ),
                                                           );
                                                           ref.invalidate(
-                                                            userEventsProvider,
+                                                            activeUserEventsProvider,
                                                           );
                                                           if (context.mounted) {
                                                             ScaffoldMessenger.of(
@@ -457,12 +464,12 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
                                                             );
 
                                                         ref.invalidate(
-                                                          groupEventsProvider(
+                                                          activeGroupEventsProvider(
                                                             event.groupId,
                                                           ),
                                                         );
                                                         ref.invalidate(
-                                                          userEventsProvider,
+                                                          activeUserEventsProvider,
                                                         );
                                                         if (context.mounted) {
                                                           ScaffoldMessenger.of(
@@ -545,8 +552,10 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
                           );
 
                           if (result == true) {
-                            ref.invalidate(groupEventsProvider(group.groupId));
-                            ref.invalidate(userEventsProvider);
+                            ref.invalidate(
+                              activeGroupEventsProvider(group.groupId),
+                            );
+                            ref.invalidate(activeUserEventsProvider);
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(

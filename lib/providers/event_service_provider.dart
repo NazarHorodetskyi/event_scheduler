@@ -9,19 +9,35 @@ final eventServiceProvider = Provider<EventService>((ref) {
   return EventService(db: firestore);
 });
 
-final groupEventsProvider = FutureProvider.family<List<EventModel>, String>((
-  ref,
-  groupId,
-) async {
-  final eventService = ref.watch(eventServiceProvider);
+// Active events
+final activeGroupEventsProvider =
+    FutureProvider.family<List<EventModel>, String>((ref, groupId) async {
+      final eventService = ref.watch(eventServiceProvider);
 
-  return eventService.getGroupEvents(groupId: groupId);
-});
+      return eventService.getGroupEvents(groupId: groupId, isActive: true);
+    });
 
-final userEventsProvider = FutureProvider<List<EventModel>>((ref) async {
+// History
+final pastGroupEventsProvider = FutureProvider.family<List<EventModel>, String>(
+  (ref, groupId) async {
+    final eventService = ref.watch(eventServiceProvider);
+
+    return eventService.getGroupEvents(groupId: groupId, isActive: false);
+  },
+);
+
+final activeUserEventsProvider = FutureProvider<List<EventModel>>((ref) async {
   final userGroups = await ref.watch(userGroupsProvider.future);
   final groupsId = userGroups.map((group) => group.groupId).toList();
 
   final eventService = ref.watch(eventServiceProvider);
-  return eventService.getUserEvents(groupsId);
+  return eventService.getUserEvents(groupsId, true);
+});
+
+final pastUserEventsProvider = FutureProvider<List<EventModel>>((ref) async {
+  final userGroups = await ref.watch(userGroupsProvider.future);
+  final groupsId = userGroups.map((group) => group.groupId).toList();
+
+  final eventService = ref.watch(eventServiceProvider);
+  return eventService.getUserEvents(groupsId, false);
 });

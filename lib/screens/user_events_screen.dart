@@ -9,10 +9,10 @@ class UserEventsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     Future<void> refresh() async {
-      await Future.wait([ref.refresh(userEventsProvider.future)]);
+      await Future.wait([ref.refresh(activeUserEventsProvider.future)]);
     }
 
-    final userEvents = ref.watch(userEventsProvider);
+    final userEvents = ref.watch(activeUserEventsProvider);
     return Scaffold(
       appBar: AppBar(title: Text("Your events")),
       body: RefreshIndicator(

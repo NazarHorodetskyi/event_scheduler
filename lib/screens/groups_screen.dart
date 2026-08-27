@@ -219,7 +219,8 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
                   if (dialogContext.mounted) Navigator.pop(dialogContext);
 
                   ref.invalidate(userGroupsProvider);
-                  ref.invalidate(userEventsProvider);
+                  ref.invalidate(activeUserEventsProvider);
+                  ref.invalidate(pastUserEventsProvider);
 
                   messenger.showSnackBar(
                     const SnackBar(

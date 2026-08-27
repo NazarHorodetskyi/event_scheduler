@@ -75,33 +75,71 @@ class EventService {
         .update(updates);
   }
 
-  Future<List<EventModel>> getGroupEvents({required String groupId}) async {
+  Future<List<EventModel>> getGroupEvents({
+    required String groupId,
+    required bool isActive,
+  }) async {
     try {
-      final snapshot = await _db
+      Query query = _db
           .collection(FirebaseConstants.eventsCollection)
-          .where(FirebaseConstants.eventGroupId, isEqualTo: groupId)
-          .get();
+          .where(FirebaseConstants.eventGroupId, isEqualTo: groupId);
+
+      if (isActive) {
+        query = query
+            .where(FirebaseConstants.eventDate, isGreaterThan: Timestamp.now())
+            .orderBy(FirebaseConstants.eventDate)
+            .limit(20);
+      } else {
+        query = query
+            .where(FirebaseConstants.eventDate, isLessThan: Timestamp.now())
+            .orderBy(FirebaseConstants.eventDate, descending: true)
+            .limit(20);
+      }
+
+      final snapshot = await query.get();
 
       return snapshot.docs
-          .map((doc) => EventModel.fromMap(doc.data()))
+          .map((doc) => EventModel.fromMap(doc.data() as Map<String, dynamic>))
           .toList();
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<List<EventModel>> getUserEvents(List<String> groupsId) async {
+  // TODO Limits
+  Future<List<EventModel>> getUserEvents(
+    List<String> groupsId,
+    bool isActive,
+  ) async {
     if (groupsId.isEmpty) {
       return [];
     }
 
-    final snapshot = await _db
-        .collection(FirebaseConstants.eventsCollection)
-        .where(FirebaseConstants.eventGroupId, whereIn: groupsId)
-        .orderBy(FirebaseConstants.eventDate)
-        .get();
+    try {
+      Query query = _db
+          .collection(FirebaseConstants.eventsCollection)
+          .where(FirebaseConstants.eventGroupId, whereIn: groupsId);
 
-    return snapshot.docs.map((doc) => EventModel.fromMap(doc.data())).toList();
+      if (isActive) {
+        query = query
+            .where(FirebaseConstants.eventDate, isGreaterThan: Timestamp.now())
+            .orderBy(FirebaseConstants.eventDate)
+            .limit(20);
+      } else {
+        query = query
+            .where(FirebaseConstants.eventDate, isLessThan: Timestamp.now())
+            .orderBy(FirebaseConstants.eventDate, descending: true)
+            .limit(20);
+      }
+
+      final snapshot = await query.get();
+
+      return snapshot.docs
+          .map((doc) => EventModel.fromMap(doc.data() as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Future<void> deleteEvent({
