@@ -1,3 +1,5 @@
+import 'package:event_scheduler/components/event_card.dart';
+import 'package:event_scheduler/models/database_group_model.dart';
 import 'package:event_scheduler/providers/auth_service_provider.dart';
 import 'package:event_scheduler/providers/event_service_provider.dart';
 import 'package:event_scheduler/providers/group_service_provider.dart';
@@ -22,6 +24,8 @@ class GroupDetailsScreen extends ConsumerStatefulWidget {
 }
 
 class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
+  int _selectedTabIndex = 0;
+
   Future<void> _refresh() async {
     await Future.wait([
       ref.refresh(groupDetailsProvider(widget.groupId).future),
@@ -33,7 +37,6 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final groupData = ref.watch(groupDetailsProvider(widget.groupId));
-    final eventsAsync = ref.watch(activeGroupEventsProvider(widget.groupId));
     final currentUser = ref.watch(authServiceProvider).currentUser!;
     final participantsAsync = ref.watch(
       groupParticipantsProvider(widget.groupId),
@@ -251,291 +254,34 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
                       ),
                     ),
                   ),
-
-                  const Divider(height: 30),
-                  eventsAsync.when(
-                    data: (events) {
-                      if (events.isEmpty) {
-                        return const Center(child: Text("No events yet"));
-                      }
-
-                      events.sort((a, b) {
-                        if (a.isCompleted != b.isCompleted) {
-                          return a.isCompleted ? 1 : -1;
-                        }
-                        if (a.isCompleted && b.isCompleted) {
-                          return a.eventDate.compareTo(b.eventDate) * -1;
-                        }
-                        return a.eventDate.compareTo(b.eventDate);
-                      });
-
-                      return ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: events.length,
-                        itemBuilder: (context, index) {
-                          final event = events[index];
-                          final isEventOwner =
-                              ((currentUser.uid == event.creatorId) ||
-                              (currentUser.uid == group.ownerId));
-                          return Opacity(
-                            opacity: event.isCompleted ? 0.6 : 1,
-                            child: Column(
-                              children: [
-                                ListTile(
-                                  title: Text(event.title),
-                                  subtitle: Text(event.description),
-                                  trailing: !event.isCompleted
-                                      ? Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            if (!event.participants.contains(
-                                              currentUser.uid,
-                                            )) ...{
-                                              ElevatedButton(
-                                                child: Text("Agree"),
-                                                onPressed: () async {
-                                                  try {
-                                                    await ref
-                                                        .read(
-                                                          eventServiceProvider,
-                                                        )
-                                                        .agreeToEvent(
-                                                          currentUser.uid,
-                                                          event.eventId,
-                                                        );
-
-                                                    ref.invalidate(
-                                                      eventServiceProvider,
-                                                    );
-                                                    ref.invalidate(
-                                                      activeUserEventsProvider,
-                                                    );
-                                                  } catch (e) {
-                                                    if (context.mounted) {
-                                                      ScaffoldMessenger.of(
-                                                        context,
-                                                      ).showSnackBar(
-                                                        SnackBar(
-                                                          content: Text(
-                                                            e.toString(),
-                                                          ),
-                                                        ),
-                                                      );
-                                                    }
-                                                  }
-                                                },
-                                              ),
-                                            },
-
-                                            if (!event.decliners.contains(
-                                              currentUser.uid,
-                                            )) ...{
-                                              ElevatedButton(
-                                                child: Text("Decline"),
-                                                onPressed: () async {
-                                                  try {
-                                                    await ref
-                                                        .read(
-                                                          eventServiceProvider,
-                                                        )
-                                                        .declineTheEvent(
-                                                          currentUser.uid,
-                                                          event.eventId,
-                                                        );
-
-                                                    ref.invalidate(
-                                                      eventServiceProvider,
-                                                    );
-                                                    ref.invalidate(
-                                                      activeUserEventsProvider,
-                                                    );
-                                                  } catch (e) {
-                                                    if (context.mounted) {
-                                                      ScaffoldMessenger.of(
-                                                        context,
-                                                      ).showSnackBar(
-                                                        SnackBar(
-                                                          content: Text(
-                                                            e.toString(),
-                                                          ),
-                                                        ),
-                                                      );
-                                                    }
-                                                  }
-                                                },
-                                              ),
-                                            },
-
-                                            // Delete button
-                                            if (isEventOwner)
-                                              Row(
-                                                children: [
-                                                  // Edit button
-                                                  IconButton(
-                                                    icon: const Icon(
-                                                      Icons.edit,
-                                                      color: Colors.orange,
-                                                    ),
-                                                    onPressed: () async {
-                                                      try {
-                                                        final result =
-                                                            await Navigator.of(
-                                                              context,
-                                                            ).push(
-                                                              MaterialPageRoute(
-                                                                builder: (context) => EventWizardScreen(
-                                                                  groupId: widget
-                                                                      .groupId,
-                                                                  groupName:
-                                                                      group
-                                                                          .name,
-                                                                  existingEvent:
-                                                                      event,
-                                                                  groupOwnerId:
-                                                                      group
-                                                                          .ownerId,
-                                                                ),
-                                                              ),
-                                                            );
-
-                                                        if (result == true) {
-                                                          ref.invalidate(
-                                                            activeGroupEventsProvider(
-                                                              event.groupId,
-                                                            ),
-                                                          );
-                                                          ref.invalidate(
-                                                            activeUserEventsProvider,
-                                                          );
-                                                          if (context.mounted) {
-                                                            ScaffoldMessenger.of(
-                                                              context,
-                                                            ).showSnackBar(
-                                                              const SnackBar(
-                                                                content: Text(
-                                                                  'Event edited!',
-                                                                ),
-                                                              ),
-                                                            );
-                                                          }
-                                                        }
-                                                      } catch (e) {
-                                                        if (context.mounted) {
-                                                          ScaffoldMessenger.of(
-                                                            context,
-                                                          ).showSnackBar(
-                                                            SnackBar(
-                                                              content: Text(
-                                                                e.toString(),
-                                                              ),
-                                                              backgroundColor:
-                                                                  Colors.red,
-                                                            ),
-                                                          );
-                                                        }
-                                                      }
-                                                    },
-                                                  ),
-
-                                                  // Delete button
-                                                  IconButton(
-                                                    icon: const Icon(
-                                                      Icons.delete,
-                                                      color: Colors.red,
-                                                    ),
-                                                    onPressed: () async {
-                                                      try {
-                                                        final eventService = ref
-                                                            .read(
-                                                              eventServiceProvider,
-                                                            );
-                                                        await eventService
-                                                            .deleteEvent(
-                                                              eventOwnerId: event
-                                                                  .creatorId,
-                                                              groupOwnerId:
-                                                                  group.ownerId,
-                                                              eventId:
-                                                                  event.eventId,
-                                                              currentUserId:
-                                                                  currentUser
-                                                                      .uid,
-                                                            );
-
-                                                        ref.invalidate(
-                                                          activeGroupEventsProvider(
-                                                            event.groupId,
-                                                          ),
-                                                        );
-                                                        ref.invalidate(
-                                                          activeUserEventsProvider,
-                                                        );
-                                                        if (context.mounted) {
-                                                          ScaffoldMessenger.of(
-                                                            context,
-                                                          ).showSnackBar(
-                                                            const SnackBar(
-                                                              content: Text(
-                                                                'Event deleted!',
-                                                              ),
-                                                            ),
-                                                          );
-                                                        }
-                                                      } catch (e) {
-                                                        if (context.mounted) {
-                                                          ScaffoldMessenger.of(
-                                                            context,
-                                                          ).showSnackBar(
-                                                            SnackBar(
-                                                              content: Text(
-                                                                e.toString(),
-                                                              ),
-                                                              backgroundColor:
-                                                                  Colors.red,
-                                                            ),
-                                                          );
-                                                        }
-                                                      }
-                                                    },
-                                                  ),
-                                                ],
-                                              ),
-                                          ],
-                                        )
-                                      : null,
-                                ),
-                                Column(
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Text(
-                                          "Participants: ${event.participants.length}",
-                                        ),
-                                        Text(
-                                          "Decliners: ${event.decliners.length}",
-                                        ),
-                                        if (!event.isCompleted) ...{
-                                          Text(
-                                            "Group members ${group.members.length}",
-                                          ),
-                                        },
-                                      ],
-                                    ),
-                                    Text(event.eventDate.toString()),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          );
+                  // TABS CHOICE
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ChoiceChip(
+                        label: const Text('Active Events'),
+                        selected: _selectedTabIndex == 0,
+                        onSelected: (selected) {
+                          if (selected) setState(() => _selectedTabIndex = 0);
                         },
-                      );
-                    },
-                    loading: () =>
-                        Center(child: const CircularProgressIndicator()),
-                    error: (error, stack) =>
-                        Center(child: Text('Events loading error: $error')),
+                      ),
+                      const SizedBox(width: 16),
+                      ChoiceChip(
+                        label: const Text('History'),
+                        selected: _selectedTabIndex == 1,
+                        onSelected: (selected) {
+                          if (selected) setState(() => _selectedTabIndex = 1);
+                        },
+                      ),
+                    ],
                   ),
+                  const SizedBox(height: 16),
+
+                  _selectedTabIndex == 0
+                      ? ActiveGroupEventsList(group: group)
+                      : PastGroupEventsList(group: group),
+
                   Center(
                     child: FloatingActionButton(
                       heroTag: null,
@@ -584,6 +330,87 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
           );
         },
       ),
+    );
+  }
+}
+
+class ActiveGroupEventsList extends ConsumerWidget {
+  final DatabaseGroup group;
+
+  const ActiveGroupEventsList({super.key, required this.group});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final eventsAsync = ref.watch(activeGroupEventsProvider(group.groupId));
+    final currentUser = ref.watch(authServiceProvider).currentUser!;
+
+    return eventsAsync.when(
+      data: (events) {
+        if (events.isEmpty) {
+          return const Center(child: Text("No events yet"));
+        }
+
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: events.length,
+          itemBuilder: (context, index) {
+            final event = events[index];
+            final isAbleToDelete =
+                ((currentUser.uid == event.creatorId) ||
+                (currentUser.uid == group.ownerId));
+            return EventCard(
+              event: event,
+              isAbleToDelete: isAbleToDelete,
+              isHistory: false,
+              group: group,
+            );
+          },
+        );
+      },
+      loading: () => Center(child: const CircularProgressIndicator()),
+      error: (error, stack) =>
+          Center(child: Text('Events loading error: $error')),
+    );
+  }
+}
+
+class PastGroupEventsList extends ConsumerWidget {
+  final DatabaseGroup group;
+
+  const PastGroupEventsList({super.key, required this.group});
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final eventsAsync = ref.watch(pastGroupEventsProvider(group.groupId));
+    final currentUser = ref.watch(authServiceProvider).currentUser!;
+
+    return eventsAsync.when(
+      data: (events) {
+        if (events.isEmpty) {
+          return const Center(child: Text("History is empty!"));
+        }
+
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: events.length,
+          itemBuilder: (context, index) {
+            final event = events[index];
+            final isAbleToDelete =
+                ((currentUser.uid == event.creatorId) ||
+                (currentUser.uid == group.ownerId));
+            return EventCard(
+              event: event,
+              isAbleToDelete: isAbleToDelete,
+              isHistory: true,
+              group: group,
+            );
+          },
+        );
+      },
+      loading: () => Center(child: const CircularProgressIndicator()),
+      error: (error, stack) =>
+          Center(child: Text('Events loading error: $error')),
     );
   }
 }
