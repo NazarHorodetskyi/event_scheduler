@@ -102,7 +102,6 @@ class EventService {
           .map((doc) => EventModel.fromMap(doc.data() as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      print(e);
       rethrow;
     }
   }
@@ -139,7 +138,6 @@ class EventService {
           .map((doc) => EventModel.fromMap(doc.data() as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      print(e);
       rethrow;
     }
   }

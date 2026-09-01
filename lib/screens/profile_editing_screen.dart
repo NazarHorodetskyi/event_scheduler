@@ -1,3 +1,4 @@
+import 'package:event_scheduler/other/app_validators.dart';
 import 'package:event_scheduler/providers/auth_service_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -34,7 +35,8 @@ class _ProfileEditingScreenState extends ConsumerState<ProfileEditingScreen> {
           SizedBox(
             height: 30,
             width: 200,
-            child: TextField(
+            child: TextFormField(
+              validator: AppValidator.validateNickname,
               controller: nicknameController,
               decoration: InputDecoration(
                 border: OutlineInputBorder(borderSide: BorderSide(width: 2)),

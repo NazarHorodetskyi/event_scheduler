@@ -1,3 +1,4 @@
+import 'package:event_scheduler/other/app_validators.dart';
 import 'package:event_scheduler/providers/auth_service_provider.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -90,8 +91,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               ),
             ),
             SizedBox(height: 15),
-            TextField(
+            TextFormField(
               controller: nicknameController,
+              validator: AppValidator.validateNickname,
               decoration: InputDecoration(
                 hint: Text("Choose nickname"),
                 hintStyle: TextStyle(backgroundColor: Colors.grey[350]),

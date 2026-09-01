@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:event_scheduler/other/app_validators.dart';
 import 'package:event_scheduler/other/exceptions.dart';
 import 'package:event_scheduler/other/firebase_constants.dart';
 import 'package:event_scheduler/models/database_user_model.dart';
@@ -114,6 +115,13 @@ class AuthService {
     required String nickname,
   }) async {
     try {
+      nickname = nickname.trim();
+
+      final nicknameValidationError = AppValidator.validateNickname(nickname);
+      if (nicknameValidationError != null) {
+        throw Exception(nicknameValidationError);
+      }
+
       final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
         email: email,
         password: password,
@@ -168,24 +176,26 @@ class AuthService {
       throw Exception("Auth error");
     }
 
-    final trimmedNickname = newNickname.trim();
-    if (trimmedNickname.length < 5) {
-      throw Exception("Nickname should be at least 5 symbols long");
+    newNickname = newNickname.trim();
+    final validationError = AppValidator.validateNickname(newNickname);
+
+    if (validationError != null) {
+      throw Exception(validationError);
     }
 
-    if (trimmedNickname == currentNickname) {
+    if (newNickname == currentNickname) {
       return;
     }
 
-    final bool isAvailable = await isNicknameAvaible(trimmedNickname);
+    final bool isAvailable = await isNicknameAvaible(newNickname);
     if (!isAvailable) {
-      throw Exception("This nickname already taken!");
+      throw Exception("This nickname is already taken!");
     }
 
     await _db
         .collection(FirebaseConstants.usersCollection)
         .doc(user.uid)
-        .update({FirebaseConstants.nickname: trimmedNickname});
+        .update({FirebaseConstants.nickname: newNickname});
 
     return;
   }
