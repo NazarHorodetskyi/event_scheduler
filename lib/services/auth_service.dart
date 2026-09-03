@@ -116,6 +116,7 @@ class AuthService {
   }) async {
     try {
       nickname = nickname.trim();
+      email = email.trim();
 
       final nicknameValidationError = AppValidator.validateNickname(nickname);
       if (nicknameValidationError != null) {
@@ -247,6 +248,17 @@ class AuthService {
     required String oldPassword,
     required String newPassword,
   }) async {
+    final oldPasswordError = AppValidator.validatePassword(oldPassword);
+    final newPasswordError = AppValidator.validatePassword(newPassword);
+
+    if (oldPasswordError != null) {
+      throw Exception(oldPasswordError);
+    }
+
+    if (newPasswordError != null) {
+      throw Exception(newPasswordError);
+    }
+
     AuthCredential credential = EmailAuthProvider.credential(
       email: currentUser!.email!,
       password: oldPassword,

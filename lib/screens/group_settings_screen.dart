@@ -1,4 +1,5 @@
 import 'package:event_scheduler/models/database_group_model.dart';
+import 'package:event_scheduler/other/app_validators.dart';
 import 'package:event_scheduler/providers/auth_service_provider.dart';
 import 'package:event_scheduler/providers/group_service_provider.dart';
 import 'package:flutter/material.dart';
@@ -34,7 +35,8 @@ class _GroupSettingsScreenState extends ConsumerState<GroupSettingsScreen> {
       appBar: AppBar(title: Text("Settings")),
       body: Column(
         children: [
-          TextField(
+          TextFormField(
+            validator: AppValidator.validateTitle,
             controller: nameController,
             maxLines: 1,
             decoration: InputDecoration(

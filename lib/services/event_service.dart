@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:event_scheduler/other/app_limits.dart';
+import 'package:event_scheduler/other/app_validators.dart';
 import 'package:event_scheduler/other/exceptions.dart';
 import 'package:event_scheduler/other/firebase_constants.dart';
 import 'package:event_scheduler/models/database_event_model.dart';
@@ -16,6 +17,21 @@ class EventService {
     required String description,
     required DateTime eventDate,
   }) async {
+    groupName = groupName.trim();
+    title = title.trim();
+    description = description.trim();
+
+    final titleError = AppValidator.validateTitle(title);
+    final descriptionError = AppValidator.validateEventDescription(description);
+
+    if (titleError != null) {
+      throw Exception(titleError);
+    }
+
+    if (descriptionError != null) {
+      throw Exception(descriptionError);
+    }
+
     final AggregateQuerySnapshot countSnapshot = await _db
         .collection(FirebaseConstants.eventsCollection)
         .where(FirebaseConstants.eventGroupId, isEqualTo: groupId)
@@ -62,6 +78,20 @@ class EventService {
   }) async {
     if (currentUserId != groupOwnerId && currentUserId != eventOwnerId) {
       throw Exception("You do not have enough rights for this operation");
+    }
+
+    final EventModel updatedEventData = EventModel.fromMap(newEventData);
+    final titleError = AppValidator.validateTitle(updatedEventData.title);
+    final descriptionError = AppValidator.validateEventDescription(
+      updatedEventData.description,
+    );
+
+    if (titleError != null) {
+      throw Exception(titleError);
+    }
+
+    if (descriptionError != null) {
+      throw Exception(descriptionError);
     }
 
     Map<String, dynamic> updates = {

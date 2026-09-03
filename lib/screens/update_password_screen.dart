@@ -1,3 +1,4 @@
+import 'package:event_scheduler/other/app_validators.dart';
 import 'package:event_scheduler/providers/auth_service_provider.dart';
 import 'package:event_scheduler/providers/user_profie_provider.dart';
 import 'package:flutter/material.dart';
@@ -42,7 +43,9 @@ class _UpdatePasswordScreenState extends ConsumerState<UpdatePasswordScreen> {
               padding: EdgeInsetsGeometry.all(8),
               child: SizedBox(
                 width: 200,
-                child: TextField(
+                child: TextFormField(
+                  validator: AppValidator.validatePassword,
+                  maxLines: 1,
                   controller: oldPasswordController,
                   decoration: InputDecoration(
                     hint: Text("Input your old password"),
@@ -55,7 +58,9 @@ class _UpdatePasswordScreenState extends ConsumerState<UpdatePasswordScreen> {
               padding: EdgeInsetsGeometry.all(8),
               child: SizedBox(
                 width: 200,
-                child: TextField(
+                child: TextFormField(
+                  validator: AppValidator.validatePassword,
+                  maxLines: 1,
                   controller: newPasswordController,
                   decoration: InputDecoration(
                     hint: Text("Create new password"),

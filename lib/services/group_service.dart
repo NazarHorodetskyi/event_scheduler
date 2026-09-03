@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:event_scheduler/models/database_group_model.dart';
 import 'package:event_scheduler/other/app_limits.dart';
+import 'package:event_scheduler/other/app_validators.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import "package:event_scheduler/other/firebase_constants.dart";
 import 'package:event_scheduler/other/exceptions.dart';
@@ -40,8 +41,9 @@ class GroupService {
       throw Exception("You have reached maximum ammount of groups!");
     }
 
-    if (newGroupName.length < 5) {
-      throw Exception("Name should be at least 5 characters long!");
+    final titleError = AppValidator.validateTitle(groupName);
+    if (titleError != null) {
+      throw Exception(titleError);
     }
 
     DocumentReference groupDocRef = _db
@@ -218,11 +220,14 @@ class GroupService {
     final trimmedName = newName.trim();
 
     if (currentUserId != groupOwnerId) {
-      throw Exception("You do not have enough rights for this information");
+      throw Exception(
+        "You do not have enough rights to perform this operation!",
+      );
     }
 
-    if (trimmedName.length < 5) {
-      throw Exception("Name should be at least 5 symbols long");
+    final titleError = AppValidator.validateTitle(trimmedName);
+    if (titleError != null) {
+      throw Exception(titleError);
     }
 
     final groupSnapshot = await _db

@@ -1,3 +1,4 @@
+import 'package:event_scheduler/other/app_validators.dart';
 import 'package:event_scheduler/providers/auth_service_provider.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -133,13 +134,16 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
           children: [
             TextField(
               controller: emailController,
+              maxLines: 1,
               decoration: InputDecoration(
                 hint: Text("Input your email"),
                 hintStyle: TextStyle(backgroundColor: Colors.grey[350]),
               ),
             ),
             SizedBox(height: 15),
-            TextField(
+            TextFormField(
+              validator: AppValidator.validatePassword,
+              maxLines: 1,
               obscureText: true,
               controller: passwordController,
               decoration: InputDecoration(

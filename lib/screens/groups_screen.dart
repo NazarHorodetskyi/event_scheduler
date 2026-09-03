@@ -1,3 +1,4 @@
+import 'package:event_scheduler/other/app_validators.dart';
 import 'package:event_scheduler/other/exceptions.dart';
 import 'package:event_scheduler/providers/auth_service_provider.dart';
 import 'package:event_scheduler/providers/event_service_provider.dart';
@@ -124,7 +125,9 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
       builder: (context) {
         return AlertDialog(
           title: const Text('New group'),
-          content: TextField(
+          content: TextFormField(
+            maxLines: 1,
+            validator: AppValidator.validateTitle,
             controller: nameController,
             decoration: const InputDecoration(hintText: 'Group name'),
           ),

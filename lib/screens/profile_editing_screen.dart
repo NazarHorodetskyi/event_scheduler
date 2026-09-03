@@ -37,6 +37,7 @@ class _ProfileEditingScreenState extends ConsumerState<ProfileEditingScreen> {
             width: 200,
             child: TextFormField(
               validator: AppValidator.validateNickname,
+              maxLines: 1,
               controller: nicknameController,
               decoration: InputDecoration(
                 border: OutlineInputBorder(borderSide: BorderSide(width: 2)),
@@ -47,7 +48,8 @@ class _ProfileEditingScreenState extends ConsumerState<ProfileEditingScreen> {
             onPressed: () async {
               final newNickname = nicknameController.text.trim();
               if (newNickname == widget.currentNickname ||
-                  newNickname.length < 5) {
+                  newNickname.length < 5 ||
+                  newNickname.length > 20) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text("Incorrect format"),

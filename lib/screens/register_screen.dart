@@ -77,13 +77,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           children: [
             TextField(
               controller: emailController,
+              maxLines: 1,
               decoration: InputDecoration(
                 hint: Text("Input your email"),
                 hintStyle: TextStyle(backgroundColor: Colors.grey[350]),
               ),
             ),
             SizedBox(height: 15),
-            TextField(
+            TextFormField(
+              validator: AppValidator.validatePassword,
+              maxLines: 1,
               controller: passwordController,
               decoration: InputDecoration(
                 hint: Text("Password"),
@@ -93,6 +96,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             SizedBox(height: 15),
             TextFormField(
               controller: nicknameController,
+              maxLines: 1,
               validator: AppValidator.validateNickname,
               decoration: InputDecoration(
                 hint: Text("Choose nickname"),

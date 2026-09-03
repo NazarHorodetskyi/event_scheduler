@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:event_scheduler/models/database_event_model.dart';
+import 'package:event_scheduler/other/app_validators.dart';
 import 'package:event_scheduler/other/exceptions.dart';
 import 'package:event_scheduler/other/firebase_constants.dart';
 import 'package:event_scheduler/providers/auth_service_provider.dart';
@@ -190,8 +191,8 @@ class _EventWizardScreenState extends ConsumerState<EventWizardScreen> {
 
   void _nextPage() {
     if (_currentPage == 1) {
-      if (_titleController.text.trim().length <= 3) {
-        _showError('Event name should have at least 3 symbols');
+      if (_titleController.text.trim().length < 5) {
+        _showError('Event name should have at least 5 symbols');
         return;
       }
       ref
@@ -287,12 +288,14 @@ class _EventWizardScreenState extends ConsumerState<EventWizardScreen> {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Center(
-              child: TextField(
+              child: TextFormField(
+                maxLines: 1,
+                validator: AppValidator.validateTitle,
                 controller: _titleController,
                 decoration: const InputDecoration(
                   labelText: 'Event name',
                   border: OutlineInputBorder(),
-                  hintText: 'At leat 4 symbols...',
+                  hintText: 'At leat 5 symbols...',
                 ),
               ),
             ),
@@ -300,9 +303,10 @@ class _EventWizardScreenState extends ConsumerState<EventWizardScreen> {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Center(
-              child: TextField(
+              child: TextFormField(
+                validator: AppValidator.validateEventDescription,
                 controller: _descController,
-                maxLines: 4,
+                maxLines: 10,
                 decoration: const InputDecoration(
                   labelText: 'Event description (optional)',
                   border: OutlineInputBorder(),
