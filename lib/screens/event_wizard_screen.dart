@@ -59,7 +59,10 @@ class EventWizardNotifier extends Notifier<EventWizard> {
       if (currentUser == null) throw UserNotAuthenticatedException();
 
       // Event editing block
-      if (eventId != null && eventOwnerId != null && groupOwnerId != null) {
+      if (eventId != null) {
+        if (eventOwnerId == null || groupOwnerId == null) {
+          throw Exception("Missing owner IDs for editing event");
+        }
         final newEventData = {
           FirebaseConstants.eventTitle: state.title,
           FirebaseConstants.eventDescription: state.description,
@@ -291,6 +294,7 @@ class _EventWizardScreenState extends ConsumerState<EventWizardScreen> {
               child: TextFormField(
                 maxLines: 1,
                 validator: AppValidator.validateTitle,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 controller: _titleController,
                 decoration: const InputDecoration(
                   labelText: 'Event name',
@@ -305,6 +309,7 @@ class _EventWizardScreenState extends ConsumerState<EventWizardScreen> {
             child: Center(
               child: TextFormField(
                 validator: AppValidator.validateEventDescription,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 controller: _descController,
                 maxLines: 10,
                 decoration: const InputDecoration(

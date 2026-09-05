@@ -128,6 +128,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
           content: TextFormField(
             maxLines: 1,
             validator: AppValidator.validateTitle,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             controller: nameController,
             decoration: const InputDecoration(hintText: 'Group name'),
           ),

@@ -86,6 +86,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             SizedBox(height: 15),
             TextFormField(
               validator: AppValidator.validatePassword,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
               maxLines: 1,
               controller: passwordController,
               decoration: InputDecoration(
@@ -98,6 +99,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               controller: nicknameController,
               maxLines: 1,
               validator: AppValidator.validateNickname,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
               decoration: InputDecoration(
                 hint: Text("Choose nickname"),
                 hintStyle: TextStyle(backgroundColor: Colors.grey[350]),

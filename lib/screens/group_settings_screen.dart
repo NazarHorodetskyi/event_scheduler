@@ -38,6 +38,7 @@ class _GroupSettingsScreenState extends ConsumerState<GroupSettingsScreen> {
           TextFormField(
             validator: AppValidator.validateTitle,
             controller: nameController,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             maxLines: 1,
             decoration: InputDecoration(
               border: OutlineInputBorder(borderSide: BorderSide(width: 40)),

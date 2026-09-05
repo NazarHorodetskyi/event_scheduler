@@ -80,10 +80,11 @@ class EventService {
       throw Exception("You do not have enough rights for this operation");
     }
 
-    final EventModel updatedEventData = EventModel.fromMap(newEventData);
-    final titleError = AppValidator.validateTitle(updatedEventData.title);
+    final titleError = AppValidator.validateTitle(
+      newEventData[FirebaseConstants.eventTitle],
+    );
     final descriptionError = AppValidator.validateEventDescription(
-      updatedEventData.description,
+      FirebaseConstants.eventDescription,
     );
 
     if (titleError != null) {

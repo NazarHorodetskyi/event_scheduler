@@ -47,6 +47,7 @@ class _UpdatePasswordScreenState extends ConsumerState<UpdatePasswordScreen> {
                   validator: AppValidator.validatePassword,
                   maxLines: 1,
                   controller: oldPasswordController,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
                   decoration: InputDecoration(
                     hint: Text("Input your old password"),
                   ),
@@ -60,6 +61,7 @@ class _UpdatePasswordScreenState extends ConsumerState<UpdatePasswordScreen> {
                 width: 200,
                 child: TextFormField(
                   validator: AppValidator.validatePassword,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
                   maxLines: 1,
                   controller: newPasswordController,
                   decoration: InputDecoration(

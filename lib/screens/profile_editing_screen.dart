@@ -39,6 +39,7 @@ class _ProfileEditingScreenState extends ConsumerState<ProfileEditingScreen> {
               validator: AppValidator.validateNickname,
               maxLines: 1,
               controller: nicknameController,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
               decoration: InputDecoration(
                 border: OutlineInputBorder(borderSide: BorderSide(width: 2)),
               ),
