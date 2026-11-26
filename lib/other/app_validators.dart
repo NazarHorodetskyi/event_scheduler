@@ -73,7 +73,7 @@ class AppValidator {
     eventDescription = eventDescription.trim();
 
     if (eventDescription.length > 400) {
-      return "Maximum 100 characters";
+      return "Maximum 400 characters";
     }
 
     return null;

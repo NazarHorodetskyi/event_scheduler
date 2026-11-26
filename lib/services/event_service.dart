@@ -84,7 +84,7 @@ class EventService {
       newEventData[FirebaseConstants.eventTitle],
     );
     final descriptionError = AppValidator.validateEventDescription(
-      FirebaseConstants.eventDescription,
+      newEventData[FirebaseConstants.eventDescription],
     );
 
     if (titleError != null) {
